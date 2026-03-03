@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ActionRegistryXML xmlns="http://registry.action.mediation.uca.hp.com/" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+	<!-- ActionReferences must be unique across this file-->
+
+	<!-- NOM Actions are not supported anymore -->
+
+	<!-- UMB Actions -->
+    <UMBActions>
+
+        <!-- ########################## -->
+        <!-- #     Alarm actions      # -->
+        <!-- ########################## -->
+
+        <!-- TeMIP -->
+        <UMBAction actionReference="TeMIP_AOAction" targetName="AnyTeMIP" targetActionName="AOAction" />
+
+        <!-- TeMIP (for backward compatibility) -->
+        <UMBAction actionReference="TeMIP_AO_Directives_localhost" targetName="AnyTeMIP" targetActionName="AOAction" />
+
+        <!-- TeMIP (for advanced usage) -->
+        <UMBAction actionReference="TeMIP_Passthrough_Directives_localhost" targetName="AnyTeMIP"
+            targetActionName="PassthroughAction" />
+
+        <!-- NMS Simulator (for integration tests) -->
+        <UMBAction actionReference="NMSTest_Create" targetName="UCA-EBC" targetActionName="db-dummy-action" />
+        <UMBAction actionReference="NMSTest_SetAttribute" targetName="NmsSimulator" targetActionName="setAlarmAttribute" />
+        <UMBAction actionReference="NMSTest_SetNavigation" targetName="NmsSimulator" targetActionName="setAlarmAttribute" />
+        <UMBAction actionReference="NMSTest_Group" targetName="NmsSimulator" targetActionName="Not_Supported" />
+        <UMBAction actionReference="NMSTest_Ungroup" targetName="NmsSimulator" targetActionName="Not_Supported" />
+        <UMBAction actionReference="NMSTest_Clear" targetName="NmsSimulator" targetActionName="clearAlarm" />
+        <UMBAction actionReference="NMSTest_Acknowledge" targetName="NmsSimulator" targetActionName="acknowledgeAlarm" />
+        <UMBAction actionReference="NMSTest_Unacknowledge" targetName="NmsSimulator" targetActionName="unacknowledgeAlarm" />
+        <UMBAction actionReference="NMSTest_Terminate" targetName="NmsSimulator" targetActionName="terminateAlarm" />
+        <UMBAction actionReference="NMSTest_Handle" targetName="NmsSimulator" targetActionName="handleAlarm" />
+        <UMBAction actionReference="NMSTest_Release" targetName="NmsSimulator" targetActionName="releaseAlarm" />
+        <UMBAction actionReference="NMSTest_Close" targetName="NmsSimulator" targetActionName="closeAlarm" />
+        <UMBAction actionReference="NMSTest_Delete" targetName="NmsSimulator" targetActionName="deleteAlarm" />
+
+        <!-- ########################## -->
+        <!-- # Trouble Ticket actions # -->
+        <!-- ########################## -->
+
+        <!-- TeMIP -->
+        <UMBAction actionReference="TeMIP_TT" targetName="AnyTeMIP" targetActionName="TTAction" />
+        <UMBAction actionReference="TeMIP_TT_Directives_localhost" targetName="AnyTeMIP" targetActionName="TTAction" />
+
+        <!-- Service Manager -->
+        <UMBAction actionReference="SM_CreateTT" targetName="Micro_Focus_Service_Manager_UMB_Adapter" targetActionName="CreateTT" />
+        <UMBAction actionReference="SM_CancelTT" targetName="Micro_Focus_Service_Manager_UMB_Adapter" targetActionName="CancelTT" />
+        <UMBAction actionReference="SM_ResolveTT" targetName="Micro_Focus_Service_Manager_UMB_Adapter" targetActionName="ResolveTT" />
+        <UMBAction actionReference="SM_CloseTT" targetName="Micro_Focus_Service_Manager_UMB_Adapter" targetActionName="ResolveTT" /> <!-- mapped on Resolve for UTTL -->
+        <UMBAction actionReference="SM_AssociateTT" targetName="Micro_Focus_Service_Manager_UMB_Adapter" targetActionName="UpdateTT" />
+        <UMBAction actionReference="SM_DissociateTT" targetName="Micro_Focus_Service_Manager_UMB_Adapter" targetActionName="UpdateTT" />
+        <UMBAction actionReference="SM_SetAttributeTT" targetName="Micro_Focus_Service_Manager_UMB_Adapter" targetActionName="UpdateTT" />
+
+        <!-- Remedy -->
+        <UMBAction actionReference="Remedy_CreateTT" targetName="remedy-umb-adapter" targetActionName="CreateTT" />
+        <UMBAction actionReference="Remedy_CancelTT" targetName="remedy-umb-adapter" targetActionName="CancelTT" />
+        <UMBAction actionReference="Remedy_ResolveTT" targetName="remedy-umb-adapter" targetActionName="ResolveTT" />
+        <UMBAction actionReference="Remedy_CloseTT" targetName="remedy-umb-adapter" targetActionName="ResolveTT" /> <!-- mapped on Resolve for UTTL -->
+        <UMBAction actionReference="Remedy_AssociateTT" targetName="remedy-umb-adapter" targetActionName="UpdateTT" />
+        <UMBAction actionReference="Remedy_DissociateTT" targetName="remedy-umb-adapter" targetActionName="UpdateTT" />
+        <UMBAction actionReference="Remedy_SetAttributeTT" targetName="remedy-umb-adapter" targetActionName="UpdateTT" />
+
+        <!-- Maximo -->
+        <UMBAction actionReference="Maximo_CreateTT" targetName="maximo-umb-adapter" targetActionName="CreateTT" />
+        <UMBAction actionReference="Maximo_CancelTT" targetName="maximo-umb-adapter" targetActionName="CancelTT" />
+        <UMBAction actionReference="Maximo_ResolveTT" targetName="maximo-umb-adapter" targetActionName="ResolveTT" />
+        <UMBAction actionReference="Maximo_CloseTT" targetName="maximo-umb-adapter" targetActionName="ResolveTT" /> <!-- mapped on Resolve for UTTL -->
+        <UMBAction actionReference="Maximo_AssociateTT" targetName="maximo-umb-adapter" targetActionName="UpdateTT" />
+        <UMBAction actionReference="Maximo_DissociateTT" targetName="maximo-umb-adapter" targetActionName="UpdateTT" />
+        <UMBAction actionReference="Maximo_SetAttributeTT" targetName="maximo-umb-adapter" targetActionName="UpdateTT" />
+
+        <!-- TTS Simulator (for integration tests) -->
+        <UMBAction actionReference="TTSTest_CreateTT" targetName="TTSSimulator" targetActionName="CreateTT">
+            <parameters>
+                <parameter>
+                    <key>flowName</key>
+                    <value xsi:type="xs:string">Remedy</value>
+                </parameter>
+            </parameters>
+        </UMBAction>
+        <UMBAction actionReference="TTSTest_CloseTT" targetName="TTSSimulator" targetActionName="ResolveTT"> <!-- mapped on Resolve for UTTL -->
+            <parameters>
+                <parameter>
+                    <key>flowName</key>
+                    <value xsi:type="xs:string">Remedy</value>
+                </parameter>
+            </parameters>
+        </UMBAction>
+        <UMBAction actionReference="TTSTest_AssociateTT" targetName="TTSSimulator" targetActionName="UpdateTT">
+            <parameters>
+                <parameter>
+                    <key>flowName</key>
+                    <value xsi:type="xs:string">Remedy</value>
+                </parameter>
+            </parameters>
+        </UMBAction>
+        <UMBAction actionReference="TTSTest_DissociateTT" targetName="TTSSimulator" targetActionName="UpdateTT">
+            <parameters>
+                <parameter>
+                    <key>flowName</key>
+                    <value xsi:type="xs:string">Remedy</value>
+                </parameter>
+            </parameters>
+        </UMBAction>
+        <UMBAction actionReference="TTSTest_SetAttributeTT" targetName="TTSSimulator" targetActionName="UpdateTT">
+            <parameters>
+                <parameter>
+                    <key>flowName</key>
+                    <value xsi:type="xs:string">Remedy</value>
+                </parameter>
+            </parameters>
+        </UMBAction>
+
+        <!-- ########################## -->
+        <!-- #    Executor actions    # -->
+        <!-- ########################## -->
+
+        <!-- HPSA (Service Activator) -->
+        <UMBAction actionReference="HPSA_diagnosticTask" targetName="service-activator-umb-adapter" targetActionName="HPSAAction" />
+
+        <!-- Exec (umb-adapter-exec) -->
+        <UMBAction actionReference="Exec_Task" targetName="Exec" targetActionName="GenericAction" />
+        <UMBAction actionReference="Exec_Ping" targetName="Exec" targetActionName="PingAction" />
+
+        <!-- Executor Simulator (for integration tests) -->
+        <UMBAction actionReference="EXECTest_Task" targetName="ExecutorSimulator" targetActionName="TaskExecutorAction" />
+
+    </UMBActions>
+
+</ActionRegistryXML>

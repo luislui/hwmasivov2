@@ -1,6 +1,8 @@
 package com.abricot.hwmasivov2.hwmasivov2;
 
 import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,8 +22,9 @@ public class Hwmasivov2 {
 
     // Patrones para parseo de campos específicos en el additionalText
     private static final Pattern PATTERN_ALARM_NAME = Pattern.compile("alarmName:\\s*([^|]+)\\|");
-    // Acepta "neName=GT1709" o "neName: GT1709"
-    private static final Pattern PATTERN_NE_NAME = Pattern.compile("neName\\s*[=:]\\s*([^|\\s\\n]+)");
+    // Acepta "neName=GT1709" o "neName: GT1709" y corta en coma, espacio, salto de línea o '|'
+    // Ej: "neName=GT1709, neIP=..." -> GT1709
+    private static final Pattern PATTERN_NE_NAME = Pattern.compile("neName\\s*[=:]\\s*([^|,\\s\\n]+)");
     // SHW_id: WG1709_:EHW_id  -> valor bruto WG1709
     private static final Pattern PATTERN_SHW_ID = Pattern.compile("SHW_id:\\s*([^_:\\s]+)_:EHW_id");
     // SPADRE:GNCYGTZA_:SPADRE -> GNCYGTZA
@@ -105,6 +108,23 @@ public class Hwmasivov2 {
                 addText = "";
             }
 
+            // Si es una PA nuestra (PB=ProblemAlarm: idSemilla), extraer paSemillaId y salir sin parseo normal
+            if (addText.contains("PB=ProblemAlarm: ")) {
+                int start = addText.indexOf("PB=ProblemAlarm: ") + "PB=ProblemAlarm: ".length();
+                int end = addText.indexOf('\n', start);
+                if (end < 0) {
+                    end = addText.length();
+                }
+                String paSemillaId = addText.substring(start, end).trim();
+                if (!paSemillaId.isEmpty()) {
+                    alarm.setCustomFieldValue("paSemillaId", paSemillaId);
+                }
+                theScenario.getLogger().info("PA recibida: {}", addText);
+                theScenario.getLogger().info("PA semilla encontrada - idSitio: {}", paSemillaId);
+                alarm.setJustInserted(false);
+                return;
+            }
+
             theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
             theScenario.getLogger().info("NUEVA ALARMA INSERTADA - Iniciando parseo (HW MASIVO V2)");
             theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
@@ -138,12 +158,13 @@ public class Hwmasivov2 {
             );
             theScenario.getLogger().info(parsedDataLog);
 
-            // Guardar en custom fields
+            // Guardar en custom fields (marcando como parseada con stage=1)
             alarm.setCustomFieldValue("alarmName", alarmName);
             alarm.setCustomFieldValue("shwIdRaw", shwIdRaw);
             alarm.setCustomFieldValue("idSitio", idSitio); // Solo los últimos 4 dígitos, ej. "1709"
             alarm.setCustomFieldValue("neName", neName);
             alarm.setCustomFieldValue("spadre", spadre);
+            alarm.setCustomFieldValue("stage", "1");
 
             theScenario.getLogger().info("─────────────────────────────────────────────────────────────");
             theScenario.getLogger().info("[OK] Parseo completado - Valores establecidos en la alarma");
@@ -156,6 +177,28 @@ public class Hwmasivov2 {
 
         // Evitar que la regla de parseo vuelva a disparar
         alarm.setJustInserted(false);
+    }
+
+    /**
+     * Cuenta cuántos idSitio distintos hay en la lista de alarmas.
+     *
+     * @param alarmsList lista de Alarm (puede ser ArrayList de Drools)
+     * @return número de idSitio distintos
+     */
+    public static int countDistinctIdSitio(List<?> alarmsList) {
+        if (alarmsList == null || alarmsList.isEmpty()) {
+            return 0;
+        }
+        Set<String> ids = new HashSet<>();
+        for (Object item : alarmsList) {
+            if (item instanceof Alarm) {
+                String idSitio = ((Alarm) item).getCustomFieldValue("idSitio");
+                if (idSitio != null && !idSitio.trim().isEmpty()) {
+                    ids.add(idSitio.trim());
+                }
+            }
+        }
+        return ids.size();
     }
 
     /**

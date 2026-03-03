@@ -10,7 +10,18 @@ import java.util.ArrayList;
 import com.hp.uca.expert.scenario.Scenario;
 import com.hp.uca.common.trace.LogHelper;
 import com.hp.uca.expert.flag.Flag;
-// import com.hp.uca.expert.testmaterial.AbstractJunitIntegrationTest;
+import com.hp.uca.expert.flag.TickFlag;
+
+declare Alarm
+       @role( event )
+       @timestamp( timeInMilliseconds )
+       // @expires( 30m )
+end
+
+declare TickFlag
+       @role( event )
+       @timestamp( creationTime )
+end
 
 // declare any global variables here
 global Scenario theScenario;
@@ -32,6 +43,179 @@ no-loop
        theScenario.getSession().update(a);
        
        LogHelper.exit(theScenario.getLogger(), drools.getRule().getName(),a.getIdentifier());
+end
+
+//
+// Agrupar al menos NumAlarmsNeDisconnected alarmas "NE Is Disconnected" de N idSitio distintos
+// en un rango de tiempo SecondsToConsiderNeDisconnected (como CorteFibraV10: se cumple el tiempo
+// y luego se recolectan las alarmas en esa ventana). Se usa un Flag para evitar crear
+// múltiples PAs en paralelo; se elimina cuando llega cualquier PA (PB=ProblemAlarm).
+// No se consideran Problem Alarms (additionalText contiene "PB=ProblemAlarm") en la agrupación.
+//
+rule "Rule [Agrupar NE Is Disconnected]"
+no-loop
+    when
+        tick : TickFlag()
+
+        // Alarma candidata "semilla": ya parseada, sin padre, alarmName = NE Is Disconnected, idSitio
+        // y que NO sea Problem Alarm (additionalText no contiene PB=ProblemAlarm)
+        a : Alarm(customFields != null,
+                  parents == null,
+                  additionalText != null,
+                  !(additionalText contains "PB=ProblemAlarm"),
+                  getCustomFieldValue("stage") != null,
+                  getCustomFieldValue("stage") == "1",
+                  getCustomFieldValue("alarmName") != null,
+                  getCustomFieldValue("alarmName") == "NE Is Disconnected",
+                  getCustomFieldValue("idSitio") != null,
+                  getPassingFiltersParams() != null)
+
+        // Que haya transcurrido al menos SecondsToConsiderNeDisconnected desde la semilla (dar tiempo a que lleguen más)
+        eval(java.lang.System.currentTimeMillis() - a.getTimeInMilliseconds() >=
+             Integer.parseInt(a.getPassingFiltersParams().get("tags").get("SecondsToConsiderNeDisconnected").toString()) * 1000)
+
+        // Y que la semilla no sea demasiado vieja (SecondsMaxAgeForNeAlarm, en segundos)
+        eval(java.lang.System.currentTimeMillis() - a.getTimeInMilliseconds() <=
+             Integer.parseInt(a.getPassingFiltersParams().get("tags").get("SecondsMaxAgeForNeAlarm").toString()) * 1000)
+
+        // Recolectar al menos NumAlarmsNeDisconnected alarmas en el rango SecondsToConsiderNeDisconnected.
+        // Solo se consideran hijas (no Problem Alarms).
+        alarms : ArrayList(size >= Integer.parseInt(
+                                a.getPassingFiltersParams().get("tags")
+                                     .get("NumAlarmsNeDisconnected").toString()
+                           )) from collect(
+            $cand : Alarm(customFields != null,
+                  parents == null,
+                  additionalText != null,
+                  !(additionalText contains "PB=ProblemAlarm"),
+                  getCustomFieldValue("stage") != null,
+                  getCustomFieldValue("stage") == "1",
+                  getCustomFieldValue("alarmName") != null,
+                  getCustomFieldValue("alarmName") == "NE Is Disconnected",
+                  getCustomFieldValue("idSitio") != null,
+                  // Filtro por ventana de tiempo usando SecondsToConsiderNeDisconnected (en segundos)
+                  Math.abs($cand.getTimeInMilliseconds() - a.getTimeInMilliseconds()) <=
+                      Integer.parseInt($cand.getPassingFiltersParams().get("tags")
+                          .get("SecondsToConsiderNeDisconnected").toString()) * 1000,
+                  // Y que la candidata no sea demasiado vieja (SecondsMaxAgeForNeAlarm, en segundos)
+                  eval(java.lang.System.currentTimeMillis() - $cand.getTimeInMilliseconds() <=
+                      Integer.parseInt($cand.getPassingFiltersParams().get("tags")
+                          .get("SecondsMaxAgeForNeAlarm").toString()) * 1000)
+                 )
+        )
+
+        // No debe haber ya un Flag indicando creación de PA en curso (cualquier Flag NE_DISC_PA bloquea)
+        not Flag(id == "NE_DISC_PA")
+
+        // Al menos N idSitio distintos entre las alarmas recolectadas
+        eval(Hwmasivov2.countDistinctIdSitio(alarms) >= Integer.parseInt(
+                a.getPassingFiltersParams().get("tags")
+                    .get("NumAlarmsNeDisconnected").toString()))
+    then
+        LogHelper.enter(theScenario.getLogger(), drools.getRule().getName(), a.getIdentifier());
+        theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
+        theScenario.getLogger().info("AGRUPAR NE IS DISCONNECTED - Iniciando agrupación");
+        theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
+        theScenario.getLogger().info("Alarma semilla     : {}", a.getIdentifier());
+        theScenario.getLogger().info("Total alarmas      : {}", alarms.size());
+        theScenario.getLogger().info("IdSitio distintos  : {}", Hwmasivov2.countDistinctIdSitio(alarms));
+        theScenario.getLogger().info("─────────────────────────────────────────────────────────────");
+
+        // Insertar Flag con idSitio (el del MO) para eliminar solo cuando llegue ESA PA (PB=ProblemAlarm: idSitio)
+        Flag paCreationFlag = new Flag("NE_DISC_PA", "creating_" + a.getCustomFieldValue("idSitio"), false);
+        theScenario.getLogger().info("Insertando Flag para bloquear creación de PA NE Is Disconnected - ID: {}, Description: {}",
+                                     paCreationFlag.getId(), paCreationFlag.getDescription());
+        theScenario.getSession().insert(paCreationFlag);
+
+        // Crear Problem Alarm padre y marcar hijas
+        AlarmGroupingV2.createNeDisconnectedPA(a, alarms);
+
+        for (Object item : alarms) {
+            Alarm alItem = (Alarm) item;
+            alItem.setCustomFieldValue("stage", "2");
+            theScenario.getSession().update(alItem);
+        }
+
+        theScenario.getLogger().info("AGRUPAR NE IS DISCONNECTED - Alarmas marcadas como agrupadas (stage=2)");
+        theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
+        LogHelper.exit(theScenario.getLogger(), drools.getRule().getName(), a.getIdentifier());
+end
+
+//
+// Regla para asociar una alarma "NE Is Disconnected" como hija de una PA existente
+// cuando la PA ya contiene su idSitio en el Additional Text (líneas "neName [idSitio]").
+// Tiene mayor prioridad que la regla de agrupación para evitar crear una nueva PA.
+//
+rule "Rule [Alarma NE Is Disconnected debe asociarse como hija]"
+    salience 20
+    no-loop
+    when
+        a : Alarm(customFields != null,
+                  parents == null,
+                  getPassingFiltersParams() != null,
+                  getCustomFieldValue("stage") != null,
+                  getCustomFieldValue("stage") == "1",
+                  getCustomFieldValue("idSitio") != null,
+                  additionalText != null,
+                  !(additionalText contains "PB=ProblemAlarm"))
+
+        pa : Alarm(additionalText != null,
+                   additionalText contains "PB=ProblemAlarm",
+                   // La PA puede no traer customFields al llegar de TeMIP; solo usamos additionalText
+                   // Verificar que el AdditionalText de la PA tiene una línea con [idSitio] de la hija
+                   eval( pa.getAdditionalText() != null &&
+                         pa.getAdditionalText().contains("[" + a.getCustomFieldValue("idSitio") + "]") ),
+                   // Que la hija no sea demasiado vieja respecto a la PA (como CorteFibraV10: sin eval de now)
+                   (getTimeInMilliseconds() - Integer.parseInt(a.getPassingFiltersParams().get("tags").get("SecondsMaxAgeForNeAlarm").toString()) * 1000) <= a.getTimeInMilliseconds())
+    then
+        LogHelper.enter(theScenario.getLogger(), drools.getRule().getName(), a.getIdentifier());
+
+        theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
+        theScenario.getLogger().info("ASOCIANDO NE IS DISCONNECTED COMO HIJA DE PA EXISTENTE");
+        theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
+        theScenario.getLogger().info("Parent Alarm ID   : {}", pa.getIdentifier());
+        theScenario.getLogger().info("Child Alarm ID    : {}", a.getIdentifier());
+        theScenario.getLogger().info("neName            : {}", a.getCustomFieldValue("neName"));
+        theScenario.getLogger().info("idSitio           : {}", a.getCustomFieldValue("idSitio"));
+        theScenario.getLogger().info("Mensaje           : Se debe asociar como hija en ambos sentidos (GROUPALARMS + ADDPARENT)");
+        theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
+
+        // 1. Asociar la hija al padre usando GROUPALARMS (GROUPALARM para un solo hijo)
+        TemipDirectives.associateChildToParent(theScenario, pa.getIdentifier(), a.getIdentifier(), pa);
+
+        // 2. Asociar el padre a la hija usando ADDPARENT
+        TemipDirectives.associateParentToChild(theScenario, a.getIdentifier(), pa.getIdentifier(), pa);
+
+        // 3. Marcar la alarma hija como procesada (stage 2) para que no participe en nueva agrupación
+        a.setCustomFieldValue("stage", "2");
+        theScenario.getSession().update(a);
+
+        LogHelper.exit(theScenario.getLogger(), drools.getRule().getName(), a.getIdentifier());
+end
+
+//
+// Elimina el Flag de creación de PA solo cuando llega la PA que creamos (PB=ProblemAlarm: idSitio).
+// El idSitio es el mismo que va en el Managed Object. Parseo pone paSemillaId; Flag description = "creating_" + idSitio.
+//
+rule "Rule [Eliminar Flag cuando PA llega a WM]"
+no-loop
+    when
+        pa : Alarm(additionalText != null,
+                   additionalText contains "PB=ProblemAlarm",
+                   getCustomFieldValue("paSemillaId") != null)
+        flag : Flag(id == "NE_DISC_PA",
+                   description == "creating_" + pa.getCustomFieldValue("paSemillaId"))
+    then
+        LogHelper.enter(theScenario.getLogger(), drools.getRule().getName(), pa.getIdentifier());
+        theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
+        theScenario.getLogger().info("ELIMINANDO FLAG DE CREACIÓN DE PA (NE Is Disconnected) - PA de esta semilla");
+        theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
+        theScenario.getLogger().info("Problem Alarm ID   : {}", pa.getIdentifier());
+        theScenario.getLogger().info("Flag ID            : {}", flag.getId());
+        theScenario.getLogger().info("Flag Description   : {}", flag.getDescription());
+        theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
+        theScenario.getSession().retract(flag);
+        LogHelper.exit(theScenario.getLogger(), drools.getRule().getName(), pa.getIdentifier());
 end
 
 // 

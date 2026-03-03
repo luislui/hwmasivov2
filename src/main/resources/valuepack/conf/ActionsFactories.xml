@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actionsFactories xmlns="http://actions.im.vp.expert.uca.hp.com/" xmlns:cm="http://config.im.vp.expert.uca.hp.com/">
+    <actions default="AnyTeMIP">
+        <action name="Claro_GR" version="8">
+            <UMBActionReferences default="TeMIP_AOAction" />
+            <actionClass>com.hpe.uca.vp.tt.ImMiniTeMIPActionsFactory</actionClass>
+            <longs>
+                <cm:long key="maxChildrenLength">
+                    <cm:value>15000</cm:value>
+                </cm:long>
+            </longs>
+            <booleans>
+                <cm:boolean key="useOnlyGroupingKeys">
+                    <cm:value>true</cm:value>
+                </cm:boolean>
+                <cm:boolean key="copyReferenceAlarmOnPbAlarmCreation">
+                    <cm:value>true</cm:value>
+                </cm:boolean>
+                <cm:boolean key="copyReferenceAlarmWhenNotPbAlarm">
+                    <cm:value>true</cm:value>
+                </cm:boolean>
+                <cm:boolean key="useOutageFlag">
+                    <cm:value>false</cm:value>
+                </cm:boolean>
+            </booleans>
+            <strings>
+                <!-- TeMIP default OperationContext fall-back -->
+                <!-- if following tags are not defined: -->
+                <!-- * ProblemAlarm.Creation.OC=.uca_problem for PD scenario -->
+                <!-- * ServiceAlarm.Creation.OC=.uca_service for TSP scenario -->
+                <!-- if ocName policy string item is not defined -->
+                <cm:string key="ocName">
+                    <cm:value>.uca_alarms</cm:value>
+                </cm:string>
+                <cm:string key="ActionIfHandleFailed">
+                    <cm:value>SM_DissociateTT</cm:value>
+                 </cm:string>                
+                <!-- <cm:string key="UTTL class"> -->
+                <!--     <cm:value>DOMAIN $1 ELEMENT $2</cm:value> -->
+                <!-- </cm:string> -->
+                <!-- <cm:string key="TT instance separator"> -->
+                <!--     <cm:value>::</cm:value> -->
+                <!-- </cm:string> -->
+                <!-- <cm:string key="userId"> -->
+                <!--     <cm:value>uca</cm:value> -->
+                <!-- </cm:string> -->
+                <cm:string key="user"> 
+                <cm:value>uca</cm:value>
+                </cm:string> 
+            </strings>
+        </action>
+        <action name="UCA"> <!-- for UCA DB (H2) -->
+            <actionClass>com.hp.uca.expert.vp.common.actions.db.DBActionsFactory</actionClass>
+            <booleans>
+                <cm:boolean key="useOnlyGroupingKeys">
+                    <cm:value>false</cm:value>
+                </cm:boolean>
+            </booleans>
+            <strings>
+                <cm:string key="jdbcAlarmForwarder">
+                    <cm:value>dbForwarder</cm:value>
+                </cm:string>
+                <cm:string key="sourceIdentifier">
+                    <cm:value>UCA</cm:value>
+                </cm:string>
+            </strings>
+        </action>
+        <action name="AnyNMS"> <!-- for NMS simulator -->
+            <UMBActionReferences>
+                <UMBactionReferenceCreate>NMSTest_Create</UMBactionReferenceCreate>
+                <UMBactionReferenceSetGenericAttribute>NMSTest_SetAttribute</UMBactionReferenceSetGenericAttribute>
+                <UMBactionReferenceSetHistoryNavigation>NMSTest_SetNavigation</UMBactionReferenceSetHistoryNavigation>
+                <UMBactionReferenceGroup>NMSTest_Group</UMBactionReferenceGroup>
+                <UMBactionReferenceUngroup>NMSTest_Ungroup</UMBactionReferenceUngroup>
+                <UMBactionReferenceClear>NMSTest_Clear</UMBactionReferenceClear>
+                <UMBactionReferenceAcknowledge>NMSTest_Acknowledge</UMBactionReferenceAcknowledge>
+                <UMBactionReferenceUnacknowledge>NMSTest_Unacknowledge</UMBactionReferenceUnacknowledge>
+                <UMBactionReferenceTerminate>NMSTest_Terminate</UMBactionReferenceTerminate>
+                <UMBactionReferenceHandle>NMSTest_Handle</UMBactionReferenceHandle>
+                <UMBactionReferenceRelease>NMSTest_Release</UMBactionReferenceRelease>
+                <UMBactionReferenceClose>NMSTest_Close</UMBactionReferenceClose>
+                <UMBactionReferenceDelete>NMSTest_Delete</UMBactionReferenceDelete>
+            </UMBActionReferences>
+            <actionClass>com.hp.uca.expert.vp.common.actions.simulator.NmsSimulatorActionsFactory</actionClass>
+            <booleans>
+                <cm:boolean key="useOnlyGroupingKeys">
+                    <cm:value>true</cm:value>
+                </cm:boolean>
+            </booleans>
+            <strings>
+                <cm:string key="createAlarmTargetAction">
+                    <cm:value>UCA</cm:value>
+                </cm:string>
+            </strings>
+        </action>
+    </actions>
+
+    <troubleTicketActions default="ServiceManager">
+        <troubleTicketAction name="ServiceManager">
+            <UMBActionReferences>
+                <UMBTroubleTicketActionReferenceCreateTT>SM_CreateTT</UMBTroubleTicketActionReferenceCreateTT>
+                <UMBTroubleTicketActionReferenceCancelTT>SM_CancelTT</UMBTroubleTicketActionReferenceCancelTT>
+                <UMBTroubleTicketActionReferenceResolveTT>SM_ResolveTT</UMBTroubleTicketActionReferenceResolveTT>
+                <UMBTroubleTicketActionReferenceCloseTT>SM_CloseTT</UMBTroubleTicketActionReferenceCloseTT>
+                <UMBTroubleTicketActionReferenceAssociateTT>SM_AssociateTT</UMBTroubleTicketActionReferenceAssociateTT>
+                <UMBTroubleTicketActionReferenceDissociateTT>SM_DissociateTT</UMBTroubleTicketActionReferenceDissociateTT>
+                <UMBTroubleTicketActionReferenceSetGenericAttribute>SM_SetAttributeTT</UMBTroubleTicketActionReferenceSetGenericAttribute>
+            </UMBActionReferences>
+            <actionClass>com.hp.uca.expert.vp.common.actions.uttl.UTTLTroubleTicketActionsFactory</actionClass>
+            <strings>
+                <cm:string key="UserId">
+                    <cm:value>UCA</cm:value>
+                </cm:string>
+                <cm:string key="UserInput">
+                    <cm:value>Automatic Ticket creation generated by UCA</cm:value>
+                </cm:string>
+            </strings>
+        </troubleTicketAction>
+        <troubleTicketAction name="Remedy">
+            <UMBActionReferences>
+                <UMBTroubleTicketActionReferenceCreateTT>Remedy_CreateTT</UMBTroubleTicketActionReferenceCreateTT>
+                <UMBTroubleTicketActionReferenceCancelTT>Remedy_CancelTT</UMBTroubleTicketActionReferenceCancelTT>
+                <UMBTroubleTicketActionReferenceResolveTT>Remedy_ResolveTT</UMBTroubleTicketActionReferenceResolveTT>
+                <UMBTroubleTicketActionReferenceCloseTT>Remedy_CloseTT</UMBTroubleTicketActionReferenceCloseTT>
+                <UMBTroubleTicketActionReferenceAssociateTT>Remedy_AssociateTT</UMBTroubleTicketActionReferenceAssociateTT>
+                <UMBTroubleTicketActionReferenceDissociateTT>Remedy_DissociateTT</UMBTroubleTicketActionReferenceDissociateTT>
+                <UMBTroubleTicketActionReferenceSetGenericAttribute>Remedy_SetGenericAttributeTT</UMBTroubleTicketActionReferenceSetGenericAttribute>
+            </UMBActionReferences>
+            <actionClass>com.hp.uca.expert.vp.common.actions.uttl.UTTLTroubleTicketActionsFactory</actionClass>
+            <strings>
+                <cm:string key="UserId">
+                    <cm:value>UCA</cm:value>
+                </cm:string>
+                <cm:string key="UserInput">
+                    <cm:value>Automatic Ticket creation generated by UCA</cm:value>
+                </cm:string>
+            </strings>
+            <actionThreadPool ownManager="true" maximumPoolSize="1" retries="2" timeout="3600" />
+       </troubleTicketAction>
+        <troubleTicketAction name="TeMIP TT">
+            <UMBActionReferences default="TeMIP_TT" />
+            <actionClass>com.hp.uca.expert.vp.common.actions.temip.TeMIPTroubleTicketActionsFactory</actionClass>
+            <strings>
+                <cm:string key="TT_SERVER entity">
+                    <cm:value>TT_SERVER .SM</cm:value>
+                </cm:string>
+                <cm:string key="CreateTemplateFile">
+                    <cm:value>createTroubleTicketBycm:valueRequest.xml</cm:value>
+                </cm:string>
+                <cm:string key="AssociateTemplateFile">
+                    <cm:value>associateTroubleTicketBycm:valueRequest.xml</cm:value>
+                </cm:string>
+                <cm:string key="CloseTemplateFile">
+                    <cm:value>closeTroubleTicketBycm:valueRequest.xml</cm:value>
+                </cm:string>
+                <cm:string key="DissociateTemplateFile">
+                    <cm:value>dissociateTroubleTicketBycm:valueRequest.xml</cm:value>
+                </cm:string>
+                <cm:string key="User">
+                    <cm:value>UCA</cm:value>
+                </cm:string>
+                <cm:string key="Input">
+                    <cm:value>Automatic Ticket creation generated by UCA</cm:value>
+                </cm:string>
+                <cm:string key="Type">
+                    <cm:value>SYNCHRONOUS</cm:value>
+                </cm:string>
+            </strings>
+        </troubleTicketAction>
+    </troubleTicketActions>
+
+    <executorActions>
+        <!-- <executorAction name="Shell Script"> -->
+        <!-- <actionReference>Exec_Task</actionReference> -->
+        <!-- <actionClass>com.hp.uca.expert.vp.common.actions.script.ScriptExecutorActionsFactory</actionClass> -->
+        <!-- <actionThreadPool ownManager="true" maximumPoolSize="1" timeout="3600" /> -->
+        <!-- </executorAction> -->
+        <!-- <executorAction name="HPSA"> -->
+        <!-- <actionReference>HPSA_diagnosticTask</actionReference> -->
+        <!-- <actionClass>com.hp.uca.expert.vp.common.actions.hpsa.HPSAExecutorActionsFactory</actionClass> -->
+        <!-- <actionThreadPool ownManager="true" maximumPoolSize="1" timeout="21600" /> -->
+        <!-- </executorAction> -->
+        <executorAction name="HPSA">
+            <actionReference>EXECTest_Task</actionReference>
+            <actionClass>com.hp.uca.expert.vp.common.actions.hpsa.ExecutorSimulatorActionsFactory</actionClass>
+            <actionThreadPool ownManager="true" maximumPoolSize="1" timeout="21600" />
+       </executorAction>
+        <executorAction name="Shell Script">
+            <actionReference>EXECTest_Task</actionReference>
+            <actionClass>com.hp.uca.expert.vp.common.actions.hpsa.ExecutorSimulatorActionsFactory</actionClass>
+            <actionThreadPool ownManager="true" maximumPoolSize="1" />
+        </executorAction>
+    </executorActions>
+</actionsFactories>

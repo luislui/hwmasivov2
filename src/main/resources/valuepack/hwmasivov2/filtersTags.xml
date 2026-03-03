@@ -2,23 +2,18 @@
 <tags xmlns="http://hp.com/uca/expert/filter/tags" xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<groups>
-		<group name="tags-group-num">
-			<simpleTags>
-				<simpleTag name="Tag1" />
-				<simpleTag name="Tag2" />
-				<simpleTag name="Tag3" />
-			</simpleTags>
+		<!-- Configuración global de parámetros para hwmasivov2,
+		     siguiendo la estructura de CorteFibraV10 -->
+		<group name="tags-config">
 			<paramTags>
-				<paramTag name="TagX" />
-			</paramTags>
-		</group>
-		<group name="tags-dummy">
-			<simpleTags>
-				<simpleTag name="DummyNoParam" />
-			</simpleTags>
-			<paramTags>
-				<paramTag name="DummyWithParam" />
-				<paramTag name="DummyWithEnum" enum="F1,F2,F3" />
+				<!-- Número mínimo de alarmas NE Is Disconnected para agrupar -->
+				<paramTag name="NumAlarmsNeDisconnected" type="numeric" default="10"/>
+				<!-- Ventana de tiempo en segundos para considerar alarmas NE Is Disconnected -->
+				<paramTag name="SecondsToConsiderNeDisconnected" type="numeric" default="60"/>
+				<!-- Edad máxima en segundos para considerar una alarma NE Is Disconnected (semilla o hija) -->
+				<paramTag name="SecondsMaxAgeForNeAlarm" type="numeric" default="43200"/>
+				<!-- Namespace de la instancia TeMIP (ej. vtemiplab_ns). Se usa al construir identificadores C:TeMIP y MASTER:TeMIP -->
+				<paramTag name="TeMIPNamespace" type="string" default="vtemiplab_ns"/>
 			</paramTags>
 		</group>
 	</groups>
