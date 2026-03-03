@@ -1,6 +1,8 @@
 package com.abricot.hwmasivov2.hwmasivov2;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.hp.uca.expert.alarm.Alarm;
 import com.hp.uca.expert.alarm.TimeStampedAttributeChange;
@@ -16,6 +18,15 @@ public class Hwmasivov2 {
 
     private static final String ALARM_RECEIVED = "Alarm received: \n{}";
 
+    // Patrones para parseo de campos específicos en el additionalText
+    private static final Pattern PATTERN_ALARM_NAME = Pattern.compile("alarmName:\\s*([^|]+)\\|");
+    // Acepta "neName=GT1709" o "neName: GT1709"
+    private static final Pattern PATTERN_NE_NAME = Pattern.compile("neName\\s*[=:]\\s*([^|\\s\\n]+)");
+    // SHW_id: WG1709_:EHW_id  -> valor bruto WG1709
+    private static final Pattern PATTERN_SHW_ID = Pattern.compile("SHW_id:\\s*([^_:\\s]+)_:EHW_id");
+    // SPADRE:GNCYGTZA_:SPADRE -> GNCYGTZA
+    private static final Pattern PATTERN_SPADRE = Pattern.compile("SPADRE:([^_:\\s]+)_:SPADRE");
+
     /**
      * Hides the empty constructor
      */
@@ -23,24 +34,127 @@ public class Hwmasivov2 {
         // Do nothing
     }
 
+    // ==========================
+    //  Métodos auxiliares parseo
+    // ==========================
+
+    private static String extractValue(Matcher matcher) {
+        if (matcher != null && matcher.find()) {
+            String value = matcher.group(1);
+            return value != null ? value.trim() : "";
+        }
+        return "";
+    }
+
+    private static boolean isEmpty(String str) {
+        return str == null || str.trim().isEmpty();
+    }
+
+    private static void formatField(StringBuilder sb, String fieldName, String fieldValue) {
+        String value = isEmpty(fieldValue) ? "(no encontrado)" : fieldValue;
+        String indicator = isEmpty(fieldValue) ? "[--]" : "[OK]";
+        sb.append(String.format("  %s %-20s : %s%n", indicator, fieldName + ":", value));
+    }
+
+    private static String formatParsedData(String alarmName, String shwIdRaw, String idSitio,
+                                           String neName, String spadre, String alarmId) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n");
+        sb.append("═══════════════════════════════════════════════════════════════\n");
+        sb.append("  DATOS PARSEADOS DE LA ALARMA (HW MASIVO V2)\n");
+        sb.append("═══════════════════════════════════════════════════════════════\n");
+
+        sb.append(String.format("  Alarm ID                 : %s%n",
+                alarmId != null ? alarmId : "(vacío)"));
+        sb.append("  ───────────────────────────────────────────────────────────\n");
+        sb.append("  VALORES EXTRAÍDOS:\n");
+        sb.append("  ───────────────────────────────────────────────────────────\n");
+
+        formatField(sb, "alarmName", alarmName);
+        formatField(sb, "SHW_id (bruto)", shwIdRaw);
+        formatField(sb, "idSitio", idSitio);
+        formatField(sb, "neName", neName);
+        formatField(sb, "SPADRE", spadre);
+
+        sb.append("═══════════════════════════════════════════════════════════════\n");
+        return sb.toString();
+    }
+
     /**
-     * Method corresponding to alarm insertion in working memory
-     * 
-     * @param alarm
-     *            the alarm that is just inserted in the Working Memory
+     * Parsea la alarma extrayendo alarmName, SHW_id, neName y SPADRE del additionalText
+     * y los guarda en custom fields.
+     *
+     * - alarmName: texto entre "alarmName:" y el siguiente '|'
+     * - SHW_id: de "SHW_id: WG1709_:EHW_id" se extrae "WG1709" y se guardan:
+     *      * shwIdRaw  = "WG1709"
+     *      * shwId     = "1709" (últimos 4 dígitos)
+     * - neName: acepta "neName=GT1709" o "neName: GT1709"
+     * - spadre: de "SPADRE:GNCYGTZA_:SPADRE" se extrae "GNCYGTZA"
      */
-    public static void newAlarmInsertion(Alarm alarm) {
-        // Get the Scenario associated to the current thread
+    public static void parseAlarm(Alarm alarm) {
         Scenario theScenario = ScenarioThreadLocal.getScenario();
 
-        // Get the logger used for the current scenario and check if enabled ie defined in log4j.xml
-        if (theScenario.getLogger().isInfoEnabled()) {
-            // Display full textual description of the received alarm
-            theScenario.getLogger().info(ALARM_RECEIVED, alarm.toFormattedString());
-            theScenario.getLogger().info("Rule has fired correctly, and new alarm has been inserted in working memory");
+        if (!theScenario.getLogger().isInfoEnabled()) {
+            alarm.setJustInserted(false);
+            return;
         }
-        // Update the "justInserted" flag to avoid the rule "New Alarm Insertion" to be fired at each scenario rules
-        // execution
+
+        try {
+            String addText = alarm.getStringField("additionalText");
+            if (addText == null) {
+                addText = "";
+            }
+
+            theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
+            theScenario.getLogger().info("NUEVA ALARMA INSERTADA - Iniciando parseo (HW MASIVO V2)");
+            theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
+            theScenario.getLogger().info("Alarma completa   :\n{}", alarm.toFormattedString());
+            theScenario.getLogger().info("─────────────────────────────────────────────────────────────");
+
+            // Extraer valores
+            String alarmName = extractValue(PATTERN_ALARM_NAME.matcher(addText));
+            String shwIdRaw = extractValue(PATTERN_SHW_ID.matcher(addText));
+            String neName = extractValue(PATTERN_NE_NAME.matcher(addText));
+            String spadre = extractValue(PATTERN_SPADRE.matcher(addText));
+
+            // Últimos 4 dígitos del SHW_id (si aplica) -> idSitio
+            String idSitio = "";
+            if (!isEmpty(shwIdRaw)) {
+                if (shwIdRaw.length() > 4) {
+                    idSitio = shwIdRaw.substring(shwIdRaw.length() - 4);
+                } else {
+                    idSitio = shwIdRaw;
+                }
+            }
+
+            // Log con formato similar a hwmasivo v1
+            String parsedDataLog = formatParsedData(
+                    alarmName,
+                    shwIdRaw,
+                    idSitio,
+                    neName,
+                    spadre,
+                    alarm.getIdentifier()
+            );
+            theScenario.getLogger().info(parsedDataLog);
+
+            // Guardar en custom fields
+            alarm.setCustomFieldValue("alarmName", alarmName);
+            alarm.setCustomFieldValue("shwIdRaw", shwIdRaw);
+            alarm.setCustomFieldValue("idSitio", idSitio); // Solo los últimos 4 dígitos, ej. "1709"
+            alarm.setCustomFieldValue("neName", neName);
+            alarm.setCustomFieldValue("spadre", spadre);
+
+            theScenario.getLogger().info("─────────────────────────────────────────────────────────────");
+            theScenario.getLogger().info("[OK] Parseo completado - Valores establecidos en la alarma");
+            theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
+        } catch (Exception e) {
+            theScenario.getLogger().error("═══════════════════════════════════════════════════════════════");
+            theScenario.getLogger().error("[ERROR] Error procesando inserción de alarma", e);
+            theScenario.getLogger().error("═══════════════════════════════════════════════════════════════");
+        }
+
+        // Evitar que la regla de parseo vuelva a disparar
         alarm.setJustInserted(false);
     }
 

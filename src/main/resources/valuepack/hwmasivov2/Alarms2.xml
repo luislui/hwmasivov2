@@ -16,8 +16,41 @@
 		<originatingManagedEntity>BOX B1</originatingManagedEntity>
 		<alarmType>COMMUNICATIONS_ALARM</alarmType>
 		<probableCause>Fire</probableCause>
-		<perceivedSeverity>MINOR</perceivedSeverity>
+		<perceivedSeverity>CRITICAL</perceivedSeverity>
 		<alarmRaisedTime>2013-05-07T15:00:00.000+02:00</alarmRaisedTime>
+		<additionalText><![CDATA[alarmName: NE Is Disconnected | alarmLocation: neName=GT1709, neIP=10.110.116.12,
+neBackupIP=NULL, NE error port=6007, NE error code=N/A, Error message=Port handshake
+timed out, Mediation partition=MediationService0305, OMC IP=10.255.171.7| appendInfo:
+Causes=The network between MAE and NEs has been interrupted for more than 3 minutes,
+Advice=Open the online help by clicking the hyperlink in Causes and Suggestions of the
+alarm and handle the alarm according to the suggestions, eNodeBId=1709
+MOI=DC=www.huawei.com , SubNetwork=1 , ManagementNode=1
+NotificationId=51315003
+SpecificProblem=301
+EventTime=139918527860000000
+SystemDn=DC=www.huawei.com , SubNetwork=1 , ManagementNode=1 , IRPAgent=1
+probableCauseText=718
+PerceivedSeverity=2
+VendorSpecificAlarmType=11
+alarmId=506210939
+<ALM_ID>506210939<ALM_ID>
+
+NEIsDisconnected
+
+
+
+RDMV_CAT
+
+
+OML Fault 
+
+
+
+
+SHW_id: WG1709_:EHW_id 
+HW_LOCATION_NAME:WF1709_SAN_JOSE_CHAVACAL:  
+SSITIO:VPANGTSJN1W1_:ESITIO 
+SPADRE:GNCYGTZA_:SPADRE]]></additionalText>
 	</AlarmCreationInterface>
 	
 	<AlarmStateChangeInterface>

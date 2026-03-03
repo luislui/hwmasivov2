@@ -16,20 +16,21 @@ import com.hp.uca.expert.flag.Flag;
 global Scenario theScenario;
 
 // 
-// Rule corresponding to any alarm creation in CLOUD mode
+// Regla de parseo de nueva alarma
 //
-rule "Rule [New Alarm Creation]"
+rule "Rule [Parseo de nueva alarma]"
 no-loop
    when
-       // Any alarm inserted in the Working memory 
-       // has the specific attribute 'justInserted' set to true
+       // Cualquier alarma insertada en la Working Memory
+       // tiene el atributo 'justInserted' a true
        	a : Alarm (justInserted == true)
    then
        LogHelper.enter(theScenario.getLogger(), drools.getRule().getName(),a.getIdentifier());
        
-       // Call the method defined for alarm insertion in Hwmasivov2.java
-       Hwmasivov2.newAlarmInsertion(a);
-
+       // Llamar al método de parseo definido en Hwmasivov2.java
+       Hwmasivov2.parseAlarm(a);
+       theScenario.getSession().update(a);
+       
        LogHelper.exit(theScenario.getLogger(), drools.getRule().getName(),a.getIdentifier());
 end
 
