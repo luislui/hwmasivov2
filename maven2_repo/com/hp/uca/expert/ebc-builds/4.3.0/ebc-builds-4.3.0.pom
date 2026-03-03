@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.hp.uca.expert</groupId>
+        <artifactId>pom-parent</artifactId>
+        <version>4.3.0</version>
+    </parent>
+    <artifactId>ebc-builds</artifactId>
+    <packaging>pom</packaging>
+    <name>UCA :: Build</name>
+
+    <description>Unified Correlation &amp; Automation Build</description>
+
+    <build>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <configuration />
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>${java.compiler.version}</source>
+                    <target>${java.compiler.version}</target>
+                    <fork>true</fork>
+                    <meminitial>128m</meminitial>
+                    <maxmem>512m</maxmem>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <reuseForks>true</reuseForks>
+                    <forkCount>1</forkCount>
+                    <threadCount>1</threadCount>
+                    <reportFormat>plain</reportFormat>
+                    <useFile>true</useFile>
+                    <childDelegation>false</childDelegation>
+                    <rerunFailingTestsCount>2</rerunFailingTestsCount>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+<!--                 <version>3.4</version> -->
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.doxia</groupId>
+                        <artifactId>doxia-module-twiki</artifactId>
+                        <version>${doxia-module-twiki.version}</version>
+                    </dependency>
+                    <!-- add support for doxia textile -->
+                    <!-- <dependency> -->
+                    <!--     <groupId>com.github.sebhoss.doxia</groupId> -->
+                    <!--     <artifactId>doxia-wikitext-textile</artifactId> -->
+                    <!--     <version>2.0.0</version> -->
+                    <!-- </dependency> -->
+                    <!-- add support for ssh/scp -->
+                    <dependency>
+                        <groupId>org.apache.maven.wagon</groupId>
+                        <artifactId>wagon-ssh</artifactId>
+                        <version>1.0</version>
+                    </dependency>
+                    <!-- add support for webdav if needed <dependency> <groupId>org.apache.maven.wagon</groupId> <artifactId>wagon-webdav-jackrabbit</artifactId> <version>1.0</version> </dependency> -->
+                </dependencies>
+            </plugin>
+
+            <plugin>
+                <groupId>com.github.jeluard</groupId>
+                <artifactId>plantuml-maven-plugin</artifactId>
+                <version>7954</version>
+                <configuration>
+                    <sourceFiles>
+                        <directory>${basedir}</directory>
+                        <includes>
+                            <include>src/site/puml/**</include>
+                        </includes>
+                    </sourceFiles>
+                    <outputDirectory>${project.build.directory}/site/images/uml</outputDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>generate-plantuml-diagrams</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <phase>pre-site</phase>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>net.sourceforge.plantuml</groupId>
+                        <artifactId>plantuml</artifactId>
+                        <version>7985</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
+        </plugins>
+
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <configuration>
+                        <stylesheetfile>${basedir}/javadoc_stylesheet.css</stylesheetfile>
+                        <detectOfflineLinks>false</detectOfflineLinks>
+                        <links>
+                            <link>http://docs.oracle.com/javase/8/docs/api/</link>
+                        </links>
+                        <excludePackageNames>*.exception:*.clazz:*.file:*.jmx:*.launch:*.log:*.misc:*.properties:*.queue:*.retry:*.statistics:*.thread:*.internal:com.hp.uca.expert.alarm.marshal:com.hp.uca.expert.licensing:com.hp.uca.expert.orchestra:com.hp.uca.expert.orchestra.config:com.hp.uca.expert.scenario.compress:com.hp.uca.expert.scenario.filter:com.hp.uca.expert.collector.alarm:com.hp.uca.expert.config:com.hp.uca.expert.constants:com.hp.uca.expert.dispatcher:com.hp.uca.expert.engine:com.hp.uca.expert.engine.template:com.hp.uca.expert.filter:com.hp.uca.expert.gui:com.hp.uca.expert.jmx:com.hp.uca.expert.logger:com.hp.uca.expert.problem:com.hp.uca.expert.scenario.exception:com.hp.uca.expert.util:com.hp.uca.expert.vp.exception:com.hp.uca.expert.vp.file:com.hp.uca.expert.watchdog:com.hp.uca.expert.security:*.topologyserver:com.ws_user</excludePackageNames>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+
+    <profiles>
+        <profile>
+            <id>build</id>
+            <modules>
+                <module>uca-mediation-action-client</module>
+                <module>uca-eml-eval</module>
+                <module>uca-ebc-engine-api</module>
+                <module>uca-graph-api</module>
+                <module>cypher-client</module>
+                <module>uca-ebc-topology</module>
+                <module>uca-neo4j-plugin</module>
+                <module>uca-neo4j-plugin-test</module>
+                <module>uca-expert-engine</module>
+                <module>neo4j-loader</module>
+                <module>uca-models</module>
+                <module>uca-ebc-maven-repos</module>
+                <module>uca-ebc-eclipse-plugin-parent</module>
+                <module>uca-expert-ui</module>
+                <module>uca-ebc-auto-console</module>
+				<!-- <module>uca-tomsawyer-licensing</module> -->
+                <module>uca-ebc-graphdisplay</module>
+                <module>uca-ebc-rest-api</module>
+                <module>uca-expert-utilities</module>
+                <module>vp</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>build-doc</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <modules>
+                <module>uca-ebc-topology</module>
+                <module>uca-expert-engine</module>
+                <module>uca-ebc-rest-api</module>
+            </modules>
+
+        </profile>
+
+        <profile>
+            <id>build-javadoc</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <modules>
+                <module>uca-ebc-javadoc</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>versionSet</id>
+            <modules>
+                <module>cypher-client</module>
+                <module>neo4j-loader</module>
+                <module>uca-ebc-auto-console</module>
+                <module>uca-ebc-eclipse-plugin-parent</module>
+                <module>uca-ebc-engine-api</module>
+                <module>uca-ebc-graphdisplay</module>
+                <module>uca-ebc-maven-repos</module>
+                <module>uca-ebc-rest-api</module>
+                <module>uca-ebc-topology</module>
+                <module>uca-eml-eval</module>
+                <module>uca-expert-engine</module>
+                <module>uca-expert-ui</module>
+                <module>uca-expert-utilities</module>
+                <module>uca-graph-api</module>
+                <module>uca-mediation-action-client</module>
+                <module>uca-models</module>
+                <module>uca-neo4j-plugin</module>
+                <module>uca-neo4j-plugin-test</module>
+                <module>uca-tomsawyer-licensing</module>
+                <module>vp</module>
+            </modules>
+        </profile>
+    </profiles>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- UCA BOM -->
+            <dependency>
+                <groupId>com.hp.uca.expert</groupId>
+                <artifactId>ebc-bom</artifactId>
+                <type>pom</type>
+                <version>${uca-expert.version}</version>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>${maven-project-info-reports-plugin.version}</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>dependencies</report>
+                            <report>project-team</report>
+                            <report>mailing-list</report>
+                            <report>cim</report>
+                            <report>scm</report>
+                            <report>index</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-report-plugin</artifactId>
+                <version>${maven-surefire-report-plugin.version}</version>
+                <configuration>
+                    <aggregated>true</aggregated>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${maven-javadoc-plugin.version}</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>javadoc</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+                <configuration>
+                    <links>
+                        <link>http://docs.oracle.com/javase/8/docs/api/</link>
+                    </links>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>taglist-maven-plugin</artifactId>
+                <version>${taglist-maven-plugin.version}</version>
+                <configuration>
+                    <tags>
+                        <tag>TODO</tag>
+                        <tag>@todo</tag>
+                        <tag>FIXME</tag>
+                        <tag>TBC</tag>
+                        <tag>TBD</tag>
+                        <tag>XXX</tag>
+                    </tags>
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>
+
+</project>

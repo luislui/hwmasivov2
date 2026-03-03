@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.hp.uca.common</groupId>
+    <artifactId>uca-common-top</artifactId>
+    <version>4.3.1</version>
+    <packaging>pom</packaging>
+    <name>uca-common top pom</name>
+
+    <description>Common versions to be used across UCA UMB IM ...</description>
+
+    <url />
+
+    <properties>
+        <!-- Minimum Java version for running UCA EBC -->
+        <!-- (format: #.#.#_##, for example 1.6.0_08) -->
+        <min.java.version>1.8.0_00</min.java.version>
+        <java.compiler.version>1.8</java.compiler.version>
+
+        <!-- maven plugin versions -->
+        <build-helper-maven-plugin.version>3.0.0</build-helper-maven-plugin.version>
+        <jaxb2-basics.version>1.11.1</jaxb2-basics.version>
+        <maven-compiler-plugin.version>3.5.1</maven-compiler-plugin.version>        
+        <maven-jar-plugin.version>2.6</maven-jar-plugin.version>
+        <maven-javadoc-plugin.version>3.1.0</maven-javadoc-plugin.version>
+        <maven-jaxb2-plugin.version>0.13.3</maven-jaxb2-plugin.version>
+        <jaxb2-maven-plugin.version>2.4</jaxb2-maven-plugin.version>
+        <maven-project-info-reports-plugin.version>2.8</maven-project-info-reports-plugin.version>
+        <maven-source-plugin.version>2.4</maven-source-plugin.version>
+        <maven-surefire-plugin.version>2.19</maven-surefire-plugin.version>
+        <maven-surefire-report-plugin.version>2.19</maven-surefire-report-plugin.version>
+        <jacoco-maven-plugin.version>0.7.5.201505241946</jacoco-maven-plugin.version>
+        <maven-antrun-plugin.version>1.8</maven-antrun-plugin.version>
+        <sonar-maven-plugin.version>3.6.0.1398</sonar-maven-plugin.version>
+
+        <!-- 3PP versions -->
+        <junit.version>4.12</junit.version>
+        <log4j.version>1.2.17</log4j.version>
+        <slf4j.version>1.7.25</slf4j.version>
+        <commons-io.version>2.6</commons-io.version>
+        <commons-lang.version>2.6</commons-lang.version>
+        <commons-lang3.version>3.8</commons-lang3.version>
+        <commons-text.version>1.6</commons-text.version>
+        <commons-collections4.version>4.1</commons-collections4.version>
+        <jackson.version>2.9.8</jackson.version>
+        <hsqldb.version>1.8.0.10</hsqldb.version>
+        <xmlunit.version>2.6.2</xmlunit.version>
+
+    </properties>
+
+	<licenses>
+		<license>
+		    <name>Hewlett-Packard Enterprise End User License Agreement</name>
+		    <url>http://www.hp.com/go/SWLicensing</url>
+		    <distribution>manual</distribution>
+		    <comments>The Hewlett-Packard Enterprise End User License Agreement ("EULA") governs the use of Hewlett-Packard Enterprise software, unless it is subject to a separate agreement between you and Hewlett-Packard Enterprise Company and its subsidiaries.</comments>
+		</license>
+	</licenses>
+	
+	<organization>
+		<name>Hewlett-Packard Enterprise</name>
+		<url>http://www.hpe.com/</url>
+	</organization>
+
+ 	<issueManagement>
+    	<system>HP ALM</system>
+    	<url>http://qc2f.austin.hpecorp.net/qcbin/</url>
+  	</issueManagement>
+  	
+     <ciManagement>
+	     <system>jenkins</system>
+	     <url>http://vbet0010g.gre.hpecorp.net:9010/</url>
+     </ciManagement>
+      
+	  <mailingLists>
+	    <mailingList>
+	      <name>UCA-EBC R and D</name>
+	      <post>cmsps.ucaexpert@hpe.com</post>
+	    </mailingList>
+	    <mailingList>
+	      <name>UCA-EBC Support</name>
+	      <post>uca-ebc-support@hpe.com</post>
+	    </mailingList>
+	  </mailingLists>
+
+    <distributionManagement>
+        <repository>
+            <id>uca-common-components</id>
+            <name>UCA Common Components Release Repository</name>
+            <url>
+                http://vbet0008g.gre.hpecorp.net:8080/nexus/content/repositories/uca-common-components/
+            </url>
+        </repository>
+        <snapshotRepository>
+            <id>uca-common-components.snapshot</id>
+            <name>UCA Common Components Snapshot Repository</name>
+            <url>
+               http://vbet0008g.gre.hpecorp.net:8080/nexus/content/repositories/uca-common-components.snapshot
+            </url>
+            <uniqueVersion>false</uniqueVersion>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <modules>
+		    <module>uca-common-components</module>
+    </modules>
+
+    <build>
+      <pluginManagement>
+          <plugins>
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-surefire-report-plugin</artifactId>
+                  <version>${maven-surefire-report-plugin.version}</version>
+              </plugin>
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-surefire-plugin</artifactId>
+                  <version>${maven-surefire-plugin.version}</version>
+                  <configuration>
+                      <reuseForks>false</reuseForks>
+                      <forkCount>1</forkCount>
+                      <threadCount>1</threadCount>
+                      <reportFormat>plain</reportFormat>
+                      <useFile>true</useFile>
+                      <childDelegation>false</childDelegation>
+                      <rerunFailingTestsCount>2</rerunFailingTestsCount>
+                  </configuration>
+              </plugin>
+              <plugin>
+                  <groupId>org.sonarsource.scanner.maven</groupId>
+                  <artifactId>sonar-maven-plugin</artifactId>
+                  <version>${sonar-maven-plugin.version}</version>
+              </plugin>
+          </plugins>
+      </pluginManagement>
+    </build>
+
+</project>

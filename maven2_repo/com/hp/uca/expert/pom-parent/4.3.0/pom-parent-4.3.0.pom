@@ -1,0 +1,1028 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.hp.uca.expert</groupId>
+    <artifactId>pom-parent</artifactId>
+    <version>4.3.0</version>
+    <packaging>pom</packaging>
+    <name>UCA</name>
+
+    <description>Unified Correlation &amp; Automation</description>
+
+    <url />
+
+    <properties>
+        <!-- Minimum Java version for running UCA     -->
+        <!-- (format: #.#.#_##, for example 1.6.0_08) -->
+        <min.java.version>1.8.0_00</min.java.version>
+        <java.compiler.version>1.8</java.compiler.version>
+        <!-- GWT 2.8.0 supports sourceLevel = 1.8 -->
+        <gwt.java.compiler.version>1.8</gwt.java.compiler.version>
+
+        <!-- default source encoding -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- for doc plugin -->
+        <rulesets.directory>${basedir}/../rulesets</rulesets.directory>
+
+        <!-- HPE UMB product versions TO BE UPDATED AT EACH RELEASE -->
+	<!-- uca-common.version>4.3.1</uca-common.version> -->
+        <uca-common.version>4.3.0</uca-common.version>
+
+        <umb.version>4.3.0</umb.version>
+        <umbkit.version>4.3.0-0B</umbkit.version>
+        <umb.depends.version>4.3.0</umb.depends.version>
+
+        <!-- HPE UTM product versions -->
+        <utm.version>4.3.0</utm.version>
+
+		<!-- HPE UCA versions -->
+        <uca-expert.version>4.3.0</uca-expert.version>
+        <uca-expert-dev.version>4.3.0</uca-expert-dev.version>
+
+        <!-- the uca mediation server is not delivered anymore with UCA V4.0 -->
+        <!-- we use the last officialy delivered version -->
+        <uca-mediation-action-service.version>3.3</uca-mediation-action-service.version>
+
+        <!-- the following version are temporary -->
+        <!-- this should be changed when temip-mapper-su and exec-mapper-su -->
+        <!-- libraries will be delivered with NOM product -->
+        <uca-mediation-exec-mapper.version>${uca-common.version}</uca-mediation-exec-mapper.version>
+        <uca-mediation-temip-mapper.version>${uca-common.version}</uca-mediation-temip-mapper.version>
+
+        <!-- eclipse plug-in Version TO BE UPDATED AT EACH RELEASE -->
+        <!-- the eclipse plug-in version has its own lifecycle and does not follow the UCA version -->
+        <!-- Note that eclipse plug-in versions must be incremental. this means that an official -->
+        <!-- release must be higher than the last snapshot release. -->
+        <uca-ebc-eclipse-plugin.version>4.3.0-SNAPSHOT</uca-ebc-eclipse-plugin.version>
+        <!-- This is used by tycho-plugin to set the plug-in qualifier (not . char allowed) -->
+        <uca-ebc-eclipse-plugin.snapshotqualifier>UCA43X0</uca-ebc-eclipse-plugin.snapshotqualifier>
+
+        <!-- Package Version TO BE UPDATED AT EACH RELEASE -->
+        <uca-expert.packageName>SERVER</uca-expert.packageName>
+        <uca-expert.packageQualifier>V</uca-expert.packageQualifier>
+        <uca-expert.packageRelease.major>4</uca-expert.packageRelease.major>
+        <uca-expert.packageRelease.minor>3.0</uca-expert.packageRelease.minor>
+        <uca-expert.packageRelease>${uca-expert.packageRelease.major}.${uca-expert.packageRelease.minor}</uca-expert.packageRelease>
+        <uca-expert.packageLevel>0</uca-expert.packageLevel>
+        <uca-expert.packageRevision>B</uca-expert.packageRevision>
+
+        <uca.version>${uca-expert.packageRelease}.${uca-expert.packageLevel}</uca.version>
+        <uca-kit.version>${uca-expert.packageRelease}-${uca-expert.packageLevel}${uca-expert.packageRevision}</uca-kit.version>
+
+        <ucaMedia.packageName>UCAMEDIA43</ucaMedia.packageName>
+        <ucaMedia.packageQualifier>V</ucaMedia.packageQualifier>
+        <ucaMedia.packageRelease>4.3.0</ucaMedia.packageRelease>
+        <ucaMedia.packageLevel>0</ucaMedia.packageLevel>
+        <ucaMedia.packageRevision>B</ucaMedia.packageRevision>
+
+        <!-- IM Demo Media version -->
+        <imdemoMedia.packageName>IMDEMOMEDIA43</imdemoMedia.packageName>
+        <imdemoMedia.packageQualifier>V</imdemoMedia.packageQualifier>
+        <imdemoMedia.packageRelease>4.3.0</imdemoMedia.packageRelease>
+        <imdemoMedia.packageLevel>0</imdemoMedia.packageLevel>
+        <imdemoMedia.packageRevision>B</imdemoMedia.packageRevision>
+
+        <im-demo-kit.version>${uca-expert.packageRelease}-${uca-expert.packageLevel}${uca-expert.packageRevision}</im-demo-kit.version>
+
+        <!-- DocStyle -->
+        <DocStyle.version>2.1</DocStyle.version>
+
+        <!--  assembly definitions -->
+        <WindowsScriptExtension>bat</WindowsScriptExtension>
+        <UnixScriptExtension>sh</UnixScriptExtension>
+
+
+        <!-- maven plugin versions -->
+        <gwt-maven-plugin.version>2.8.0</gwt-maven-plugin.version>
+        <javax.servlet-api.version>3.1.0</javax.servlet-api.version><!-- The same version that com.google.gwt:gwt-user depends on -->
+        <jaxb2-basics.version>0.9.4</jaxb2-basics.version>
+        <jaxb2-basics-annotate.version>1.1.0</jaxb2-basics-annotate.version>
+        <maven-jaxb2-plugin.version>0.13.3</maven-jaxb2-plugin.version>
+        <jaxws-maven-plugin.version>2.2</jaxws-maven-plugin.version>
+        <aspectj-maven-plugin.version>1.11</aspectj-maven-plugin.version>
+
+        <build-helper-maven-plugin.version>3.0.0</build-helper-maven-plugin.version>
+        <buildnumber-maven-plugin.version>1.4</buildnumber-maven-plugin.version>
+        <maven-antrun-plugin.version>1.8</maven-antrun-plugin.version>
+        <maven-assembly-plugin.version>2.6</maven-assembly-plugin.version> <!-- upgrade when https://issues.apache.org/jira/browse/MASSEMBLY-874 is resolved -->
+        <maven-clean-plugin.version>3.1.0</maven-clean-plugin.version>
+        <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
+        <maven-dependency-plugin.version>3.1.0</maven-dependency-plugin.version>
+        <maven-javadoc-plugin.version>3.1.0</maven-javadoc-plugin.version>
+        <maven-shade-plugin.version>3.1.1</maven-shade-plugin.version>
+        <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
+        <maven-jar-plugin.version>3.1.0</maven-jar-plugin.version>
+        <maven-war-plugin.version>3.2.0</maven-war-plugin.version>
+        <maven-install-plugin.version>2.5.2</maven-install-plugin.version>
+        <maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
+        <maven-eclipse-plugin.version>2.10</maven-eclipse-plugin.version>
+        <maven-jxr-plugin.version>2.5</maven-jxr-plugin.version>
+        <maven-pmd-plugin.version>3.9.0</maven-pmd-plugin.version>
+        <maven-replacer-plugin.version>1.6.0</maven-replacer-plugin.version>
+        <maven-resources-plugin.version>3.1.0</maven-resources-plugin.version>
+        <maven-surefire-plugin.version>2.21.0</maven-surefire-plugin.version>
+        <maven-surefire-report-plugin.version>2.21.0</maven-surefire-report-plugin.version>
+        <scala-maven-plugin.version>3.3.2</scala-maven-plugin.version>
+        <taglist-maven-plugin.version>2.4</taglist-maven-plugin.version>
+        <versions-maven-plugin.version>2.7</versions-maven-plugin.version>
+        <packaging-plugin.version>1.5-SNAPSHOT</packaging-plugin.version>
+        <jacoco-maven-plugin.version>0.7.5.201505241946</jacoco-maven-plugin.version>
+        <maven-site-plugin.version>3.7.1</maven-site-plugin.version>
+        <maven-project-info-reports-plugin.version>2.9</maven-project-info-reports-plugin.version>
+        <plantuml-maven-plugin.version>7954</plantuml-maven-plugin.version>
+        <plantuml.version>7985</plantuml.version>
+        <doxia-module-twiki.version>1.8</doxia-module-twiki.version>
+        <doxia-wikitext-textile.version>2.0.0</doxia-wikitext-textile.version>
+        <truezip-maven-plugin.version>1.2</truezip-maven-plugin.version>
+        <sphinx-maven-plugin.version>2.6.0</sphinx-maven-plugin.version>
+        <sonar-maven-plugin.version>3.6.0.1398</sonar-maven-plugin.version>
+        <sdscan-maven-plugin.version>1.1</sdscan-maven-plugin.version>
+
+        <!-- 3PP versions -->
+
+        <!-- align below 3pp with artifact org.neo4j:parent:3.5.18 -->
+        <opencsv.version>2.3</opencsv.version>
+        <hamcrest.version>1.3</hamcrest.version>
+        <commons-lang3.version>3.8</commons-lang3.version>
+        <jetty.version>9.4.17.v20190418</jetty.version>
+        <scala.version>2.11.12</scala.version>
+        <jackson.version>2.10.2</jackson.version>
+
+        <!-- engine -->
+        <junit.version>4.13</junit.version>
+        <awaitility.version>3.1.6</awaitility.version>
+        <mockito.version>2.9.0</mockito.version>
+        <autopassj.version>9.6.6</autopassj.version>
+        <classworlds.version>1.1</classworlds.version>
+        <batik.version>1.10</batik.version>       <!-- OWASP warnings with batik version 1.7: https://nvd.nist.gov/vuln/detail/CVE-2015-0250, https://nvd.nist.gov/vuln/detail/CVE-2017-5662 -->
+        <commons-cli.version>1.2</commons-cli.version>
+        <commons-collections.version>3.2.2</commons-collections.version>
+        <commons-collections4.version>4.1</commons-collections4.version>
+        <commons-configuration.version>1.10</commons-configuration.version>
+        <commons-dbcp.version>1.4</commons-dbcp.version>
+        <commons-digester.version>2.1</commons-digester.version>
+        <commons-lang.version>2.6</commons-lang.version>
+        <commons-logging.version>1.2</commons-logging.version>
+        <commons-validator.version>1.6</commons-validator.version>
+        <spring.version>5.0.16.RELEASE</spring.version>
+        <xsom.version>20140925</xsom.version>
+        <drools.version>7.7.0.Final</drools.version>
+        <xstream.version>1.4.10</xstream.version>
+        <spring.security.version>4.1.0.RELEASE</spring.security.version>
+        <activemq.version>5.15.11</activemq.version>                  <!-- NOM 7.2.0 version is 5.9.0-nom-6 -->
+        <xbean-spring.version>3.11.1</xbean-spring.version>
+        <jsr250api.version>1.0</jsr250api.version>
+        <javax-transaction-api.version>1.3</javax-transaction-api.version>
+        <javax-interceptor-api.version>3.1</javax-interceptor-api.version>
+        <aspectj.version>1.8.14</aspectj.version>
+        <jersey.version>1.19</jersey.version>   <!-- Not using versions 1.19.1-1.19.4 because of errors / Neo4J 3.5.3 uses 1.19.3 -->
+        <jsr311-api.version>1.1.1</jsr311-api.version>  <!-- Same version that jersey-core uses -->
+        <jexl.version>2.1.1</jexl.version>
+        <mybatis-spring.version>1.3.3</mybatis-spring.version>
+        <mybatis.version>3.4.1</mybatis.version>
+        <h2.version>1.4.200</h2.version>
+        <gwt.version>2.8.0</gwt.version>
+        <smartgwt.version>6.0-p20171213</smartgwt.version>
+        <spring.ldap.version>2.0.4.RELEASE</spring.ldap.version>
+        <ecj.version>4.4.2</ecj.version>  <!-- Same version used by Drools -->
+        <geronimo.version>1.1.1</geronimo.version>
+        <slf4j.version>1.7.25</slf4j.version>
+        <poi.version>3.16</poi.version>
+        <!-- topology -->
+        <stax-api.version>1.0.1</stax-api.version>
+        <mimepull.version>1.9.1</mimepull.version>
+        <neo4j.version>3.5.19</neo4j.version>
+        <neo4j-enterprise-rpm.version>3.5.19-1</neo4j-enterprise-rpm.version>
+        <cypher-shell-rpm.version>1.1.13-1</cypher-shell-rpm.version>
+        <neo4j-java-driver.version>1.7.2</neo4j-java-driver.version>
+        <scalatest_2.11.version>2.2.5</scalatest_2.11.version>
+        <slf4s-api_2.11.version>1.7.12</slf4s-api_2.11.version>
+        <config.version>0.5.2</config.version>
+        <json.version>20160212</json.version>
+        <httpclient.version>4.5.3</httpclient.version>
+        <httpcore.version>4.4.6</httpcore.version>   <!-- Same version as the one that httpclient depends on -->
+        <tomsawyer.version>7.5.1</tomsawyer.version>
+        <!-- Autopass -->
+        <hsqldb.version>1.8.0.10</hsqldb.version>
+
+        <ant-junit.version>1.6.5</ant-junit.version>         <!--  to be remove after pd-example pom.xml cleanup -->
+        <ant-optional.version>1.5.3-1</ant-optional.version> <!--  to be remove after pd-example pom.xml cleanup -->
+
+        <!-- Others -->
+        <rulesets.directory>${basedir}/rulesets</rulesets.directory>
+
+        <!-- argLine used by surefire plugin. must be defined here -->
+        <!-- for jacoco to work properly -->
+        <argLine>-ea -XX:+HeapDumpOnOutOfMemoryError</argLine>
+
+        <!-- sonar configuration -->
+        <sonar.exclusions>**/generated-sources/**</sonar.exclusions>
+        <sonar.core.codeCoveragePlugin>jacoco</sonar.core.codeCoveragePlugin>
+        <sonar.jacoco.reportPaths>${project.basedir}/target/jacoco.exec</sonar.jacoco.reportPaths>
+
+        <sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
+        <sonar.projectKey>ASR:UCA:ALL:5.x</sonar.projectKey>
+        <sonar.projectName>ASR:UCA:ALL:5.x</sonar.projectName>
+        <sonar.projectVersion>${project.version}</sonar.projectVersion>
+
+    </properties>
+
+    <licenses>
+        <license>
+            <name>HPE End User License Agreement – Enterprise Version</name>
+            <url>https://softwaresupport.hpe.com/</url>
+            <distribution>manual</distribution>
+            <comments>The HPE End User License Agreement ("EULA") governs the use of HP enterprise software, unless it is subject to a separate agreement between you and Hewlett-Packard Company and its subsidiaries.</comments>
+        </license>
+    </licenses>
+
+    <organization>
+        <name>HPE CMS OSS</name>
+        <url>http://hpe.com/csp/oss</url>
+    </organization>
+
+    <developers>
+        <developer>
+            <id>thy</id>
+            <name>Thierry Jourdain</name>
+            <email>thierry.jourdain@hpe.com</email>
+            <organization>HPE</organization>
+            <roles>
+                <role>Project Manager</role>
+            </roles>
+        </developer>
+        <developer>
+            <id>christophe</id>
+            <name>Christophe Anzile</name>
+            <email>christophe.anzile@hpe.com</email>
+            <organization>HPE</organization>
+            <roles>
+                <role>Committer</role>
+            </roles>
+        </developer>
+        <developer>
+            <id>jef</id>
+            <name>Jean-Francois Sordet</name>
+            <email>jean-francois.sordet@hpe.com</email>
+            <organization>HPE</organization>
+            <roles>
+                <role>Committer</role>
+            </roles>
+        </developer>
+        <developer>
+            <id>jmu</id>
+            <name>Jean-Marie Urago</name>
+            <email>jean-marie.urago@hpe.com</email>
+            <organization>HPE</organization>
+            <roles>
+                <role>Committer</role>
+            </roles>
+        </developer>
+        <developer>
+            <id>pit</id>
+            <name>Pierre Masse</name>
+            <email>pierre.masse@hpe.com</email>
+            <organization>HPE</organization>
+            <roles>
+                <role>Committer</role>
+            </roles>
+        </developer>
+        <developer>
+            <id>seb</id>
+            <name>Sebastien Gonin</name>
+            <email>sebastien.gonin@hpe.com</email>
+            <organization>HPE</organization>
+            <roles>
+                <role>Committer</role>
+            </roles>
+        </developer>
+        <developer>
+            <id>don</id>
+            <name>Donatien Riviere</name>
+            <email>donatien.riviere@hpe.com</email>
+            <organization>HPE</organization>
+            <roles>
+                <role>Committer</role>
+            </roles>
+        </developer>
+    </developers>
+
+    <contributors>
+        <contributor>
+            <name>Loïc Miguet</name>
+            <organization>Astek</organization>
+            <roles>
+                <role>developer</role>
+            </roles>
+        </contributor>
+        <contributor>
+            <name>Antonio Argento</name>
+            <organization>Altran</organization>
+            <roles>
+                <role>developer</role>
+            </roles>
+        </contributor>
+    </contributors>
+
+    <issueManagement>
+        <system>HP ALM</system>
+        <url>http://qc4f.austin.hpecorp.net/qcbin/</url>
+    </issueManagement>
+
+    <ciManagement>
+        <system>Jenkins</system>
+        <url>http://vbet0010g.gre.hpecorp.net:9010/</url>
+    </ciManagement>
+
+    <mailingLists>
+        <mailingList>
+            <name>UCA R and D</name>
+            <post>cmsps.ucaexpert@hpe.com</post>
+        </mailingList>
+        <mailingList>
+            <name>UCA Support</name>
+            <post>uca-ebc-support@hpe.com</post>
+        </mailingList>
+    </mailingLists>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>truezip-maven-plugin</artifactId>
+                    <version>${truezip-maven-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jxr-plugin</artifactId>
+                    <version>${maven-jxr-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-pmd-plugin</artifactId>
+                    <version>${maven-pmd-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.jvnet.jax-ws-commons</groupId>
+                    <artifactId>jaxws-maven-plugin</artifactId>
+                    <version>${jaxws-maven-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>${jacoco-maven-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <version>${maven-antrun-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-clean-plugin</artifactId>
+                    <version>${maven-clean-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-eclipse-plugin</artifactId>
+                    <version>${maven-eclipse-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-war-plugin</artifactId>
+                    <version>${maven-war-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>${maven-dependency-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>${maven-assembly-plugin.version}</version>
+                    <configuration>
+                        <!-- Setting \ as escapeString because otherwise there no default escapeString -->
+                        <escapeString>\</escapeString>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>com.hp.ngoss.fmk.tooling.plugins</groupId>
+                    <artifactId>packaging-plugin</artifactId>
+                    <version>${packaging-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>com.hpe.activator.maven</groupId>
+                    <artifactId>sdscan-maven-plugin</artifactId>
+                    <version>${sdscan-maven-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-report-plugin</artifactId>
+                    <version>${maven-surefire-report-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven-surefire-plugin.version}</version>
+                    <configuration>
+                        <reuseForks>false</reuseForks>
+                        <forkCount>1</forkCount>
+                        <threadCount>1</threadCount>
+                        <reportFormat>plain</reportFormat>
+                        <useFile>true</useFile>
+                        <childDelegation>false</childDelegation>
+                        <rerunFailingTestsCount>2</rerunFailingTestsCount>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>${maven-source-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>${maven-resources-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>${maven-shade-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>${maven-jar-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>${maven-javadoc-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <version>${maven-site-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-project-info-reports-plugin</artifactId>
+                    <version>${maven-project-info-reports-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>com.github.jeluard</groupId>
+                    <artifactId>plantuml-maven-plugin</artifactId>
+                    <version>${plantuml-maven-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-install-plugin</artifactId>
+                    <version>${maven-install-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>${maven-deploy-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>gwt-maven-plugin</artifactId>
+                    <version>${gwt-maven-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.jvnet.jaxb2.maven2</groupId>
+                    <artifactId>maven-jaxb2-plugin</artifactId>
+                    <version>${maven-jaxb2-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>aspectj-maven-plugin</artifactId>
+                    <version>${aspectj-maven-plugin.version}</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.aspectj</groupId>
+                            <artifactId>aspectjtools</artifactId>
+                            <version>${aspectj.version}</version>
+                        </dependency>
+                    </dependencies>
+                    <configuration>
+                        <source>${java.compiler.version}</source>
+                        <target>${java.compiler.version}</target>
+                        <complianceLevel>${java.compiler.version}</complianceLevel>
+                        <aspectLibraries>
+                            <!-- Compile-Time aspects allowing support of @Transactional -->
+                            <aspectLibrary>
+                                <groupId>org.springframework</groupId>
+                                <artifactId>spring-aspects</artifactId>
+                            </aspectLibrary>
+                        </aspectLibraries>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>compile</goal>
+                                <goal>test-compile</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>${build-helper-maven-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>buildnumber-maven-plugin</artifactId>
+                    <version>${buildnumber-maven-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>net.alchim31.maven</groupId>
+                    <artifactId>scala-maven-plugin</artifactId>
+                    <version>${scala-maven-plugin.version}</version>
+                    <configuration>
+                        <displayCmd>true</displayCmd>
+                        <encoding>UTF-8</encoding>
+                        <args>
+                            <arg>-Dfile.encoding=UTF-8</arg>
+                            <arg>-encoding</arg>
+                            <arg>UTF8</arg>
+                        </args>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>versions-maven-plugin</artifactId>
+                    <version>${versions-maven-plugin.version}</version>
+                    <configuration>
+                        <generateBackupPoms>false</generateBackupPoms>
+                    </configuration>
+                </plugin>
+                <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself. -->
+                <plugin>
+                    <groupId>org.eclipse.m2e</groupId>
+                    <artifactId>lifecycle-mapping</artifactId>
+                    <version>1.0.0</version>
+                    <configuration>
+                        <lifecycleMappingMetadata>
+                            <pluginExecutions>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>org.codehaus.mojo</groupId>
+                                        <artifactId>aspectj-maven-plugin</artifactId>
+                                        <versionRange>[${aspectj-maven-plugin.version},)</versionRange>
+                                        <goals>
+                                            <goal>compile</goal>
+                                            <goal>test-compile</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore></ignore>
+                                    </action>
+                                </pluginExecution>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>net.alchim31.maven</groupId>
+                                        <artifactId>scala-maven-plugin</artifactId>
+                                        <versionRange>[${scala-maven-plugin.version},)</versionRange>
+                                        <goals>
+                                            <goal>compile</goal>
+                                            <goal>testCompile</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore />
+                                    </action>
+                                </pluginExecution>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>org.apache.maven.plugins</groupId>
+                                        <artifactId>maven-antrun-plugin</artifactId>
+                                        <versionRange>[${maven-antrun-plugin.version},)</versionRange>
+                                        <goals>
+                                            <goal>run</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore />
+                                    </action>
+                                </pluginExecution>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>com.tomsawyer.licensing</groupId>
+                                        <artifactId>ts-maven-licensing-plugin</artifactId>
+                                        <versionRange>[1.0.2,)</versionRange>
+                                        <goals>
+                                            <goal>setup</goal>
+                                            <goal>deployer</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore />
+                                    </action>
+                                </pluginExecution>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>com.sun.jersey.contribs</groupId>
+                                        <artifactId>maven-wadl-plugin</artifactId>
+                                        <versionRange>[1.18,)</versionRange>
+                                        <goals>
+                                            <goal>generate</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore />
+                                    </action>
+                                </pluginExecution>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>org.apache.maven.plugins</groupId>
+                                        <artifactId>maven-war-plugin</artifactId>
+                                        <versionRange>[${maven-war-plugin.version},)</versionRange>
+                                        <goals>
+                                            <goal>exploded</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore />
+                                    </action>
+                                </pluginExecution>
+                                <!-- avoid endless loop on eclipse incremental build -->
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>org.codehaus.mojo</groupId>
+                                        <artifactId>build-helper-maven-plugin</artifactId>
+                                        <versionRange>[1.0,)</versionRange>
+                                        <goals>
+                                            <goal>parse-version</goal>
+                                            <goal>add-source</goal>
+                                            <goal>maven-version</goal>
+                                            <goal>add-resource</goal>
+                                            <goal>add-test-resource</goal>
+                                            <goal>add-test-source</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <execute>
+                                            <runOnConfiguration>true</runOnConfiguration>
+                                            <runOnIncremental>true</runOnIncremental>
+                                        </execute>
+                                    </action>
+                                </pluginExecution>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>org.apache.maven.plugins</groupId>
+                                        <artifactId>maven-resources-plugin</artifactId>
+                                        <versionRange>[1.0.0,)</versionRange>
+                                        <goals>
+                                            <goal>resources</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <execute>
+                                            <runOnConfiguration>true</runOnConfiguration>
+                                            <runOnIncremental>false</runOnIncremental>
+                                        </execute>
+                                    </action>
+                                </pluginExecution>
+                            </pluginExecutions>
+                        </lifecycleMappingMetadata>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <!-- https://trustin.github.io/sphinx-maven-plugin/ -->
+                    <!-- https://github.com/trustin/sphinx-maven-plugin -->
+                    <groupId>kr.motd.maven</groupId>
+                    <artifactId>sphinx-maven-plugin</artifactId>
+                    <version>${sphinx-maven-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.sonarsource.scanner.maven</groupId>
+                    <artifactId>sonar-maven-plugin</artifactId>
+                    <version>${sonar-maven-plugin.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <source>${java.compiler.version}</source>
+                    <target>${java.compiler.version}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <!-- always attach sources jars -->
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                            <goal>test-jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>buildnumber-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>create</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <scmBranchPropertyName>buildBranch</scmBranchPropertyName>
+                    <buildNumberPropertyName>buildNumber</buildNumberPropertyName>
+                    <timestampPropertyName>buildTimestamp</timestampPropertyName>
+                    <!-- <shortRevisionLength>5</shortRevisionLength> -->
+                    <doCheck>false</doCheck>
+                    <doUpdate>false</doUpdate>
+                    <getRevisionOnlyOnce>true</getRevisionOnlyOnce>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <addMavenDescriptor>false</addMavenDescriptor>
+                        <manifestEntries>
+                            <Copyright>(c) 2016 Hewlett-Packard Enterprise Development Co., L.P.</Copyright>
+                            <X-Compile-Source-JDK>${java.compiler.version}</X-Compile-Source-JDK>
+                            <X-Compile-Target-JDK>${java.compiler.version}</X-Compile-Target-JDK>
+                        </manifestEntries>
+                        <manifestSections>
+                            <manifestSection>
+                                <name>Specification</name>
+                                <manifestEntries>
+                                    <Specification-Title>${project.name}</Specification-Title>
+                                    <Specification-Version>${project.artifact.selectedVersion.majorVersion}.${project.artifact.selectedVersion.minorVersion}</Specification-Version>
+                                    <Specification-Vendor>${project.organization.name}</Specification-Vendor>
+                                    <Specification-URL>${project.organization.url}</Specification-URL>
+                                </manifestEntries>
+                            </manifestSection>
+                            <manifestSection>
+                                <name>Implementation</name>
+                                <manifestEntries>
+                                    <Implementation-Title>${project.artifactId}</Implementation-Title>
+                                    <Implementation-Version>${project.version}</Implementation-Version>
+                                    <Implementation-Vendor-Id>${project.groupId}</Implementation-Vendor-Id>
+                                </manifestEntries>
+                            </manifestSection>
+                            <manifestSection>
+                                <name>Build</name>
+                                <manifestEntries>
+                                    <Build-Branch>${buildBranch}</Build-Branch>
+                                    <Build-Number>${buildNumber}</Build-Number>
+                                    <Build-Timestamp>${buildTimestamp}</Build-Timestamp>
+                                </manifestEntries>
+                            </manifestSection>
+                        </manifestSections>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>bom</id>
+            <modules>
+                <module>ebc-bom</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>build</id>
+            <modules>
+                <module>ebc-builds</module>
+                <module>im-builds</module>
+                <module>uca-osrb</module>
+            </modules>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <!-- Exclude some Drools packages from being instrumented to avoid "method code too large" errors -->
+                            <excludes>
+                                <exclude>**org.drools.compiler.lang*</exclude>
+                            </excludes>
+                            <destFile>${sonar.jacoco.reportPaths}</destFile>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>build-phase-0</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <modules>
+                <module>im-builds</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>build-phase-1</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <modules>
+                <module>im-builds</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>build-phase-2</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <modules>
+                <module>im-builds</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>build-phase-3</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <modules>
+                <module>im-builds</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>build-phase-4</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <modules>
+                <module>im-builds</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>build-phase-5</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <modules>
+                <module>im-builds</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>build-doc</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <modules>
+                <module>ebc-builds</module>
+                <module>im-builds</module>
+            </modules>
+
+        </profile>
+
+        <profile>
+            <id>build-javadoc</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <modules>
+                <module>ebc-builds</module>
+                <module>im-builds</module>
+            </modules>
+
+        </profile>
+
+        <profile>
+            <id>packaging</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <modules>
+                <module>ebc-packaging</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>versionSet</id>
+            <modules>
+                <module>ebc-bom</module>
+                <module>ebc-builds</module>
+                <module>im-builds</module>
+                <module>uca-osrb</module>
+                <module>ebc-packaging</module>
+                <module>documentation</module>
+                <module>uca-ebc-patches</module>
+            </modules>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>versions-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>set</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>help</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>help-on-profiles</id>
+                                <phase>validate</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <target>
+                                        <echo>=======================================================</echo>
+                                        <echo> You need to specifiy one or several profiles to build </echo>
+                                        <echo> this project (-P option)                              </echo>
+                                        <echo>=======================================================</echo>
+                                        <echo> Build profiles                   </echo>
+                                        <echo>=======================================================</echo>
+                                        <echo> bom: Builds the UCA BOM component        </echo>
+                                        <echo> build: Builds the UCA core component       </echo>
+                                        <echo> build-javadoc: Builds the UCA aggregated javadoc   </echo>
+                                        <echo> build-doc: Builds the UCA core documentation   </echo>
+                                        <echo> packaging: Builds the UCA assembly and packages</echo>
+                                        <echo>=======================================================</echo>
+                                    </target>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <distributionManagement>
+        <repository>
+            <id>uca-expert</id>
+            <name>UCA Release Repository</name>
+            <url>http://vbet0008g.gre.hpecorp.net:8080/nexus/content/repositories/uca-expert/</url>
+        </repository>
+        <snapshotRepository>
+            <id>uca-expert.snapshot</id>
+            <name>UCA Snapshot Repository</name>
+            <url>http://vbet0008g.gre.hpecorp.net:8080/nexus/content/repositories/uca-expert.snapshot/</url>
+            <uniqueVersion>false</uniqueVersion>
+        </snapshotRepository>
+        <site>
+            <id>local</id>
+            <!-- <url>scp://peterv3.gre.hpecorp.net:/usr/users/anzilec/public_html/uca/</url> -->
+            <!-- <url>scp://vbet0008g.gre.hpecorp.net:/data/nexus/storage/uca-expert/com/hp/uca/expert/uca-expert-doc/</url> -->
+            <!-- <url>dav:http://ent122.sharepoint.hpecorp.net/teams/OVTeMIP/UCA-EBC-V31/Project%20Technical%20Documents/test/</url> -->
+            <url>file:///Z:/</url>
+        </site>
+    </distributionManagement>
+
+    <scm>
+        <connection>scm:git:https://github.hpe.com/OSSUCA/OSSUCA.git</connection>
+        <developerConnection>scm:git:https://github.hpe.com/OSSUCA/OSSUCA.git</developerConnection>
+        <url>https://github.hpe.com/OSSUCA/OSSUCA/</url>
+    </scm>
+
+</project>

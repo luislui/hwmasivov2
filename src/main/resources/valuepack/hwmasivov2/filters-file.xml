@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<filters xmlns="http://hp.com/uca/expert/filter">
+   <topFilter name="test1" tagsGroup="tags-group-num">
+		<allCondition tag="Tag1" >
+			<stringFilterStatement tag="Tag2,Tag3,TagX=12">
+				<fieldName>originatingManagedEntity</fieldName>
+				<operator>matches</operator>
+				<fieldValue>.*</fieldValue>
+                <!--  Or another example of filter (for filtering on the BOX class)
+                     <fieldValue>BOX .*</fieldValue>
+                -->
+			</stringFilterStatement>
+		</allCondition>
+    </topFilter>
+   <topFilter name="test2" tagsGroup="tags-group-num,tags-dummy">
+		<allCondition tag="DummyNoParam,DummyWithEnum=F1" >
+			<stringFilterStatement tag="Tag2,Tag3,DummyWithParam=123">
+				<fieldName>originatingManagedEntity</fieldName>
+				<operator>matches</operator>
+				<fieldValue>BOX .*</fieldValue>
+			</stringFilterStatement>
+		</allCondition>
+    </topFilter>
+</filters>

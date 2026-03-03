@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<valuePackConfiguration xmlns="http://hp.com/uca/expert/config"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	name="hwmasivov2" version="1.0.0">
+	
+	<scenarios>
+		<scenario name="hwmasivov2">
+			<alarmEligibilityPolicy><![CDATA[NetworkState!="CLEARED"]]></alarmEligibilityPolicy>  
+			<filterFiles>
+				<filterFile>hwmasivov2/filters-file.xml</filterFile>
+			</filterFiles>
+			<filterTagsFile>hwmasivov2/filtersTags.xml</filterTagsFile>		
+			<fireAllRulesPolicy>EACH_ACCESS</fireAllRulesPolicy>
+			<globals></globals>
+			<processingMode>CLOUD</processingMode>
+			<rulesFiles>
+				<rulesFile>
+					<filename>hwmasivov2/hwmasivov2.drl</filename>
+					<name>rulesFile1</name>
+					<ruleFileType>DRL</ruleFileType>
+				</rulesFile>
+			</rulesFiles>
+		</scenario>
+	</scenarios>
+	
+	<mediationFlows>
+		<UMBmediationFlow name="TeMIPflowOnOc1" targetAdapterName="TeMIP"
+		targetFlowName="temipFlow1" automaticStart="true">
+			<flowParameters>
+				<flowParameter key="operationContext" value="uca_network" />
+				<flowParameter key="operationContext" value="uca_pbalarm" />
+				<!-- <flowParameter key="OCName" value="OC1"/> -->
+			</flowParameters>
+		</UMBmediationFlow>
+	</mediationFlows>
+</valuePackConfiguration>

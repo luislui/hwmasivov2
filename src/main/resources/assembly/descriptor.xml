@@ -1,0 +1,49 @@
+<assembly>
+
+    <id>vp assembly</id>
+
+    <formats>
+        <format>zip</format>
+    </formats>
+    <baseDirectory>${project.artifactId}-${project.version}</baseDirectory>
+    <includeBaseDirectory>true</includeBaseDirectory>
+
+    <dependencySets>
+
+        <!--  valuepack jar and dependencies-->
+        <dependencySet>
+            <useTransitiveFiltering>true</useTransitiveFiltering>
+            <useProjectArtifact>true</useProjectArtifact>
+            <outputDirectory>lib</outputDirectory>
+            <outputFileNameMapping>${artifact.artifactId}-${artifact.baseVersion}${dashClassifier?}.${artifact.extension}</outputFileNameMapping>  
+            <scope>runtime</scope>
+            <fileMode>0644</fileMode>
+            <directoryMode>0755</directoryMode>
+        </dependencySet>
+    </dependencySets>
+
+    <fileSets>
+
+        <!-- war file if any -->
+        <fileSet>
+            <outputDirectory>lib</outputDirectory>
+            <directory>target</directory>
+            <filtered>false</filtered>
+            <includes>
+                <include>*.war</include>
+            </includes>
+            <fileMode>0644</fileMode>
+            <directoryMode>0755</directoryMode>
+        </fileSet> 
+        
+                
+        <!--  valuepack configuration -->
+        <fileSet>
+            <outputDirectory>.</outputDirectory>
+            <directory>src/main/resources/valuepack</directory>
+            <fileMode>0644</fileMode>
+            <directoryMode>0755</directoryMode>
+        </fileSet>
+
+    </fileSets>
+</assembly>

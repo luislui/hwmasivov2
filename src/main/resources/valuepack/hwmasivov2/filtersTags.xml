@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tags xmlns="http://hp.com/uca/expert/filter/tags" xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<groups>
+		<group name="tags-group-num">
+			<simpleTags>
+				<simpleTag name="Tag1" />
+				<simpleTag name="Tag2" />
+				<simpleTag name="Tag3" />
+			</simpleTags>
+			<paramTags>
+				<paramTag name="TagX" />
+			</paramTags>
+		</group>
+		<group name="tags-dummy">
+			<simpleTags>
+				<simpleTag name="DummyNoParam" />
+			</simpleTags>
+			<paramTags>
+				<paramTag name="DummyWithParam" />
+				<paramTag name="DummyWithEnum" enum="F1,F2,F3" />
+			</paramTags>
+		</group>
+	</groups>
+</tags>

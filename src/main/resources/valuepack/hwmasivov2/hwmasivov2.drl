@@ -1,0 +1,94 @@
+package com.abricot.hwmasivov2.hwmasivov2;
+
+// list any import classes here.
+import com.hp.uca.expert.alarm.Alarm;
+import com.hp.uca.expert.alarm.AlarmStateChange;
+import com.hp.uca.expert.alarm.AlarmAttributeValueChange;
+import com.hp.uca.expert.x733alarm.PerceivedSeverity;
+import com.hp.uca.expert.util.MessageFileHandler;
+import java.util.ArrayList;
+import com.hp.uca.expert.scenario.Scenario;
+import com.hp.uca.common.trace.LogHelper;
+import com.hp.uca.expert.flag.Flag;
+// import com.hp.uca.expert.testmaterial.AbstractJunitIntegrationTest;
+
+// declare any global variables here
+global Scenario theScenario;
+
+// 
+// Rule corresponding to any alarm creation in CLOUD mode
+//
+rule "Rule [New Alarm Creation]"
+no-loop
+   when
+       // Any alarm inserted in the Working memory 
+       // has the specific attribute 'justInserted' set to true
+       	a : Alarm (justInserted == true)
+   then
+       LogHelper.enter(theScenario.getLogger(), drools.getRule().getName(),a.getIdentifier());
+       
+       // Call the method defined for alarm insertion in Hwmasivov2.java
+       Hwmasivov2.newAlarmInsertion(a);
+
+       LogHelper.exit(theScenario.getLogger(), drools.getRule().getName(),a.getIdentifier());
+end
+
+// 
+// Rule corresponding to any alarm attribute value change in CLOUD mode
+//
+rule "Rule [Alarm Attribute Value Change]"
+no-loop
+    when
+       // Any alarm that has attributes updated in Working memory
+       // has the specific attribute 'hasAVCChanged' set to true
+	   a : Alarm (justInserted ==false,
+					hasAVCChanged == true, 
+					aboutToBeRetracted == false)
+	then
+       LogHelper.enter(theScenario.getLogger(), drools.getRule().getName(),a.getIdentifier());
+       
+       // Call the method defined for alarm AVC in Hwmasivov2.java
+	   Hwmasivov2.alarmAttributeChange(a);
+
+       LogHelper.exit(theScenario.getLogger(), drools.getRule().getName(),a.getIdentifier());
+end
+
+// 
+// Rule corresponding to any alarm state change in CLOUD mode
+//
+rule "Rule [Alarm State Change]"
+no-loop
+	when
+	   // Any alarm that has its state updated in Working memory
+       // has the specific attribute 'hasStateChanged' set to true	
+	   a : Alarm (justInserted ==false,
+					hasStateChanged == true,
+					aboutToBeRetracted == false)
+	then
+       LogHelper.enter(theScenario.getLogger(), drools.getRule().getName(),a.getIdentifier());
+
+       // Call the method defined for alarm state change in Hwmasivov2.java               
+       Hwmasivov2.alarmStateChange(a);
+		
+       LogHelper.exit(theScenario.getLogger(), drools.getRule().getName(),a.getIdentifier());
+		
+end
+
+// 
+// Rule corresponding to alarm retraction in respect of alarmEligibilityPolicy : NetworkState!="CLEARED"
+//
+rule "Rule [Alarm no more eligible]"
+no-loop
+	when
+	    // Any alarm that has the specific attribute 'aboutToBeRetracted' set to true
+	    // will be automatically removed from the Working memory
+		a : Alarm (aboutToBeRetracted == true)
+	then
+       LogHelper.enter(theScenario.getLogger(), drools.getRule().getName(),a.getIdentifier());
+       
+       theScenario.getLogger().info("Alarm no more eligible\n"+ a.toString());
+		
+       LogHelper.exit(theScenario.getLogger(), drools.getRule().getName(),a.getIdentifier());
+end
+
+

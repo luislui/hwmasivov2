@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.abricot.hwmasivov2</groupId>
+    <artifactId>hwmasivov2</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <name>Value pack hwmasivov2</name>
+    <description>Unified Correlation and Automation - Value Pack hwmasivov2</description>
+
+    <!-- =======================================================
+         BUILD CONFIG
+         ======================================================= -->
+    <build>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <exclude>valuepack/</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <directory>src/main/resources/valuepack</directory>
+            </resource>
+            <resource>
+                <directory>target/uca-ebc-configuration/configuration</directory>
+            </resource>
+            <resource>
+                <directory>target/uca-ebc-configuration/schemas</directory>
+            </resource>
+        </resources>
+
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+            </testResource>
+        </testResources>
+
+        <plugins>
+
+            <!-- FORCE JAVA 8 SOURCE LEVEL -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.7.0</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+
+            <!-- DEPENDENCY PLUGIN -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>unpack-vp-dependencies-resources</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.hp.uca.expert</groupId>
+                                    <artifactId>uca-expert-engine</artifactId>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.hp.uca.expert</groupId>
+                                    <artifactId>uca-ebc-engine-api</artifactId>
+                                </artifactItem>
+                            </artifactItems>
+                            <includes>schemas/*.xsd, configuration/**</includes>
+                            <outputDirectory>target/uca-ebc-configuration</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- ASSEMBLY PLUGIN -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.6</version>
+                <configuration>
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <attach>true</attach>
+                    <descriptors>
+                        <descriptor>src/main/resources/assembly/descriptor.xml</descriptor>
+                    </descriptors>
+                    <finalName>hwmasivov2-vp-1.0.0</finalName>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>kit</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- JAR PLUGIN -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <includes>
+                        <include>**/*.class</include>
+                    </includes>
+                </configuration>
+            </plugin>
+
+            <!-- SUREFIRE (UPDATED TO SUPPORT jdkHome) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.1.2</version>
+                <configuration>
+                    <jdkHome>/oms/Conda/openjdk18/opt/openjdk8</jdkHome>
+                    <reuseForks>false</reuseForks>
+                    <forkCount>1</forkCount>
+                    <threadCount>1</threadCount>
+                    <reportFormat>plain</reportFormat>
+                    <useFile>true</useFile>
+                    <childDelegation>false</childDelegation>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+    <!-- =======================================================
+         DEPENDENCY MANAGEMENT
+         ======================================================= -->
+    <dependencyManagement>
+        <dependencies>
+
+            <!-- JAXB version declarations -->
+            <dependency>
+                <groupId>javax.xml.bind</groupId>
+                <artifactId>jaxb-api</artifactId>
+                <version>2.3.1</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.glassfish.jaxb</groupId>
+                <artifactId>jaxb-runtime</artifactId>
+                <version>2.3.1</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.hp.uca.expert</groupId>
+                <artifactId>ebc-bom</artifactId>
+                <version>4.3.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.hp.umb</groupId>
+                <artifactId>umb-bom</artifactId>
+                <version>4.3.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
+    <!-- =======================================================
+         DEPENDENCIES (real classpath)
+         ======================================================= -->
+    <dependencies>
+
+        <!-- JAXB: REQUIRED FOR TESTS IN JAVA 9+ -->
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.sun.xml.bind</groupId>
+            <artifactId>jaxb-impl</artifactId>
+            <version>2.3.3</version>
+        </dependency>
+
+        <!-- UCA / EBC -->
+        <dependency>
+            <groupId>com.hp.uca.expert</groupId>
+            <artifactId>uca-expert-engine</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.hp.uca.expert</groupId>
+            <artifactId>uca-expert-engine</artifactId>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.hp.umb</groupId>
+            <artifactId>umb-adapter-fmk</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.hp.uca.common</groupId>
+            <artifactId>uca-common</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.hp.uca.expert</groupId>
+            <artifactId>uca-mediation-action-client</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.hp.uca.common</groupId>
+            <artifactId>uca-mediation-exec-mvp-mapper-keys</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.hp.uca.common</groupId>
+            <artifactId>uca-mediation-temip-mvp-mapper-keys</artifactId>
+        </dependency>
+
+        <!-- TESTING -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <!-- =======================================================
+         REPOSITORIES
+         ======================================================= -->
+    <repositories>
+        <repository>
+            <id>uca_repo</id>
+            <name>uca_repo</name>
+            <releases>
+                <enabled>true</enabled>
+                <checksumPolicy>ignore</checksumPolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <checksumPolicy>ignore</checksumPolicy>
+            </snapshots>
+            <url>file:${env.UCA_EBC_DEV_HOME}/maven2_repo</url>
+        </repository>
+
+        <repository>
+            <id>valuepack_repo</id>
+            <name>valuepack_repo</name>
+            <releases>
+                <enabled>true</enabled>
+                <checksumPolicy>ignore</checksumPolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <checksumPolicy>ignore</checksumPolicy>
+            </snapshots>
+            <url>file:maven2_repo</url>
+        </repository>
+    </repositories>
+
+        <!-- =======================================================
+         PROFILES
+         ======================================================= -->
+    <profiles>
+        <profile>
+            <id>test2</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <includes>
+                                <include>**/Hwmasivov2Test2.java</include>
+                            </includes>
+                            <excludes>
+                                <exclude>**/Hwmasivov2Test.java</exclude>
+                            </excludes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>all</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <includes>
+                                <include>**/Hwmasivov2Test.java</include>
+                                <include>**/Hwmasivov2Test2.java</include>
+                            </includes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+</project>

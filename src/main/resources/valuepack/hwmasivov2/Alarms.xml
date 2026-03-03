@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<Alarms xmlns="http://hp.com/uca/expert/x733Alarm">
+	
+	<BeginSynchronizationInterface >
+	    <sourceIdentifier>TeMIP EMS</sourceIdentifier>
+	</BeginSynchronizationInterface>
+
+	<EndSynchronizationInterface >
+	    <sourceIdentifier>TeMIP EMS</sourceIdentifier>
+	</EndSynchronizationInterface>
+
+	<AlarmCreationInterface>
+		<sourceIdentifier>TeMIP EMS</sourceIdentifier>
+		<identifier>1</identifier>
+		<originatingManagedEntity>BOX B1</originatingManagedEntity>
+		<alarmType>COMMUNICATIONS_ALARM</alarmType>
+		<probableCause>Fire</probableCause>
+		<perceivedSeverity>MINOR</perceivedSeverity>
+		<alarmRaisedTime>2013-05-07T15:00:00.000+02:00</alarmRaisedTime>
+	</AlarmCreationInterface>
+	<AlarmAttributeValueChangeInterface>
+		<identifier>1</identifier>
+		<originatingManagedEntity>BOX B1</originatingManagedEntity>
+		<alarmType>COMMUNICATIONS_ALARM</alarmType>
+		<probableCause>Fire</probableCause>
+		<perceivedSeverity>MINOR</perceivedSeverity>
+		<alarmRaisedTime>2013-05-07T15:00:05.000+02:00</alarmRaisedTime>		
+		<attributeChanges>
+			<attributeChange name="problemInformation" newValue="New Problem information" oldValue="" />
+			<attributeChange name="notificationIdentifier" newValue="100" oldValue="" />
+		</attributeChanges>
+	</AlarmAttributeValueChangeInterface>	
+	<AlarmStateChangeInterface>
+		<identifier>1</identifier>
+		<originatingManagedEntity>BOX B1</originatingManagedEntity>
+		<alarmType>COMMUNICATIONS_ALARM</alarmType>
+		<probableCause>Fire</probableCause>
+		<perceivedSeverity>MINOR</perceivedSeverity>
+		<alarmRaisedTime>2013-05-07T15:00:06.000+02:00</alarmRaisedTime>		
+		<attributeChanges>
+			<attributeChange name="operatorState" newValue="ACKNOWLEDGED" oldValue="NOT_ACKNOWLEDGED" />
+		</attributeChanges>
+	</AlarmStateChangeInterface>
+	<AlarmStateChangeInterface>
+		<identifier>1</identifier>
+		<originatingManagedEntity>BOX B1</originatingManagedEntity>
+		<alarmType>COMMUNICATIONS_ALARM</alarmType>
+		<probableCause>Fire</probableCause>
+		<perceivedSeverity>MINOR</perceivedSeverity>
+		<alarmRaisedTime>2013-05-07T15:00:06.000+02:00</alarmRaisedTime>		
+		<attributeChanges>
+			<attributeChange name="networkState" newValue="CLEARED" oldValue="NOT_CLEARED" />
+		</attributeChanges>
+	</AlarmStateChangeInterface>
+</Alarms>
+	
