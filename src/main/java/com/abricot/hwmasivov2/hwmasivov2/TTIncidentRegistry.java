@@ -1,6 +1,9 @@
 package com.abricot.hwmasivov2.hwmasivov2;
 
-import java.time.Instant;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -8,24 +11,20 @@ import com.hp.uca.expert.alarm.Alarm;
 import com.hp.uca.expert.scenario.Scenario;
 
 /**
- * Registro de incidentes TT para persistencia (Oracle/SQLite en el futuro).
- * Por ahora solo simula la escritura en BD registrando en log las filas que se insertarían.
+ * Registro de incidentes TT persistido en SQLite vía JDBC.
+ * Una fila por (incident_id, ne_name, id_sitio); constraint único evita duplicados.
  */
 public class TTIncidentRegistry {
 
     private static final String ESTADO_ABIERTO = "abierto";
+    private static final String DEFAULT_TABLE = "UCA_TT_INCIDENT";
 
     private TTIncidentRegistry() {
     }
 
     /**
-     * Registra el incidente TT asociado a la alarma: si es PA, una fila por cada neName único
-     * del additionalText; si es hija, una fila con su neName e idSitio.
-     * Por ahora solo simula (log); cuando se implemente la BD real se sustituirá por INSERT.
-     *
-     * @param scenario   escenario actual (para log)
-     * @param alarm      alarma (PA o hija)
-     * @param incidentId número del TT (identificador SM)
+     * Registra el incidente TT: si es PA, una fila por cada neName único del additionalText;
+     * si es hija, una fila con su neName e idSitio. Persiste en SQLite (tags: TTRegistryJdbcUrl, TTRegistryTableName).
      */
     public static void registerTTIncident(Scenario scenario, Alarm alarm, String incidentId) {
         if (scenario == null || alarm == null || incidentId == null || incidentId.trim().isEmpty()) {
@@ -43,7 +42,7 @@ public class TTIncidentRegistry {
                 return;
             }
         } catch (Exception e) {
-            // asumir habilitado para simulación
+            // asumir habilitado
         }
 
         String addText = null;
@@ -57,29 +56,39 @@ public class TTIncidentRegistry {
             addText = "";
         }
 
-        // PA: additionalText contiene "PB=ProblemAlarm" -> una fila por neName único; id_sitio es el valor entre corchetes
+        String jdbcUrl = getTag(alarm, "TTRegistryJdbcUrl");
+        String tableName = getTag(alarm, "TTRegistryTableName");
+        if (tableName == null || tableName.trim().isEmpty()) {
+            tableName = DEFAULT_TABLE;
+        }
+
         if (addText.contains("PB=ProblemAlarm")) {
             Map<String, String> uniqueByNeName = extractUniqueLinesByNeName(addText);
             for (Map.Entry<String, String> e : uniqueByNeName.entrySet()) {
-                simulateInsert(scenario, incidentId.trim(), e.getKey(), e.getValue(), ESTADO_ABIERTO);
+                insertRow(scenario, alarm, jdbcUrl, tableName, incidentId.trim(), e.getKey(), e.getValue(), ESTADO_ABIERTO);
             }
             return;
         }
 
-        // Hija: neName e idSitio en custom fields
         String neName = alarm.getCustomFieldValue("neName");
         String idSitio = alarm.getCustomFieldValue("idSitio");
-        if (neName == null) {
-            neName = "";
-        } else {
-            neName = neName.trim();
+        if (neName == null) neName = "";
+        else neName = neName.trim();
+        if (idSitio == null) idSitio = "";
+        else idSitio = idSitio.trim();
+        insertRow(scenario, alarm, jdbcUrl, tableName, incidentId.trim(), neName, idSitio, ESTADO_ABIERTO);
+    }
+
+    private static String getTag(Alarm alarm, String key) {
+        try {
+            if (alarm.getPassingFiltersParams() == null || alarm.getPassingFiltersParams().get("tags") == null) {
+                return null;
+            }
+            Object v = ((java.util.Map<?, ?>) alarm.getPassingFiltersParams().get("tags")).get(key);
+            return v != null ? v.toString().trim() : null;
+        } catch (Exception e) {
+            return null;
         }
-        if (idSitio == null) {
-            idSitio = "";
-        } else {
-            idSitio = idSitio.trim();
-        }
-        simulateInsert(scenario, incidentId.trim(), neName, idSitio, ESTADO_ABIERTO);
     }
 
     /**
@@ -94,9 +103,7 @@ public class TTIncidentRegistry {
         String[] lines = additionalText.split("\\r?\\n");
         for (String line : lines) {
             String trimmed = line.trim();
-            if (trimmed.isEmpty()) {
-                continue;
-            }
+            if (trimmed.isEmpty()) continue;
             int open = trimmed.indexOf(" [");
             int close = trimmed.lastIndexOf(']');
             if (open > 0 && close > open) {
@@ -111,16 +118,60 @@ public class TTIncidentRegistry {
     }
 
     /**
-     * Simula el INSERT registrando en log la fila que se persistiría.
-     * Cuando se implemente la BD real, aquí irá la lógica JDBC.
+     * Inserta una fila en SQLite. Si la URL JDBC está vacía, solo registra en log.
+     * Duplicados (UNIQUE constraint): se registra en log y no se relanza.
      */
-    private static void simulateInsert(Scenario scenario, String incidentId, String neName, String idSitio, String estado) {
-        if (scenario == null || scenario.getLogger() == null) {
+    private static void insertRow(Scenario scenario, Alarm alarm, String jdbcUrl, String tableName,
+                                  String incidentId, String neName, String idSitio, String estado) {
+        if (scenario != null && scenario.getLogger() != null) {
+            scenario.getLogger().info(
+                    "TTIncidentRegistry insert: incident_id={}, ne_name={}, id_sitio={}, estado={} (fechas en BD)",
+                    incidentId, neName, idSitio, estado);
+        }
+
+        if (jdbcUrl == null || jdbcUrl.trim().isEmpty()) {
             return;
         }
-        Instant now = Instant.now();
-        scenario.getLogger().info(
-                "TTIncidentRegistry [simulación] would insert: incident_id={}, ne_name={}, id_sitio={}, estado={}, fecha_creacion={}, fecha_actualizacion={}",
-                incidentId, neName, idSitio, estado, now, now);
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = DriverManager.getConnection(jdbcUrl);
+            String sql = "INSERT INTO " + sanitizeTableName(tableName) + " (incident_id, ne_name, id_sitio, estado) VALUES (?, ?, ?, ?)";
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, incidentId);
+            ps.setString(2, neName);
+            ps.setString(3, idSitio);
+            ps.setString(4, estado);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            if (isUniqueConstraintViolation(e)) {
+                if (scenario != null && scenario.getLogger() != null) {
+                    scenario.getLogger().info("TTIncidentRegistry: fila ya existe (duplicado ignorado): incident_id={}, ne_name={}, id_sitio={}", incidentId, neName, idSitio);
+                }
+            } else {
+                if (scenario != null && scenario.getLogger() != null) {
+                    scenario.getLogger().warn("TTIncidentRegistry: error al insertar: incident_id={}, ne_name={}, id_sitio={} - {}", incidentId, neName, idSitio, e.getMessage());
+                }
+            }
+        } finally {
+            if (ps != null) try { ps.close(); } catch (SQLException ignored) { }
+            if (conn != null) try { conn.close(); } catch (SQLException ignored) { }
+        }
+    }
+
+    private static boolean isUniqueConstraintViolation(SQLException e) {
+        // SQLite: error code 19 = SQLITE_CONSTRAINT (UNIQUE, NOT NULL, etc.)
+        if (e.getErrorCode() == 19) {
+            return true;
+        }
+        String msg = e.getMessage();
+        return msg != null && (msg.contains("UNIQUE constraint") || msg.contains("UNIQUE constraint failed"));
+    }
+
+    /** Solo permite caracteres alfanuméricos y guión bajo en nombre de tabla (evitar SQL injection). */
+    private static String sanitizeTableName(String tableName) {
+        if (tableName == null) return DEFAULT_TABLE;
+        return tableName.trim().replaceAll("[^a-zA-Z0-9_]", "");
     }
 }

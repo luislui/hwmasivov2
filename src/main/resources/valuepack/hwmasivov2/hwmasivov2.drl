@@ -146,7 +146,7 @@ end
 // cuando la PA ya contiene su idSitio en el Additional Text (líneas "neName [idSitio]").
 // Tiene mayor prioridad que la regla de agrupación para evitar crear una nueva PA.
 //
-rule "Rule [Alarma NE Is Disconnected debe asociarse como hija]"
+rule "Rule [Alarma debe asociarse como hija]"
     salience 20
     no-loop
     when
@@ -171,7 +171,7 @@ rule "Rule [Alarma NE Is Disconnected debe asociarse como hija]"
         LogHelper.enter(theScenario.getLogger(), drools.getRule().getName(), a.getIdentifier());
 
         theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
-        theScenario.getLogger().info("ASOCIANDO NE IS DISCONNECTED COMO HIJA DE PA EXISTENTE");
+        theScenario.getLogger().info("ASOCIANDO COMO HIJA DE PA EXISTENTE");
         theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
         theScenario.getLogger().info("Parent Alarm ID   : {}", pa.getIdentifier());
         theScenario.getLogger().info("Child Alarm ID    : {}", a.getIdentifier());
@@ -262,7 +262,7 @@ no-loop
 
         a.setCustomFieldValue("stage", "2");
         theScenario.getSession().update(a);
-        createdTTId = "F4705963"; // TODO: eliminar
+        createdTTId = "F4705964"; // TODO: eliminar
 
         if (createdTTId != null && !createdTTId.trim().isEmpty()) {
             TTIncidentRegistry.registerTTIncident(theScenario, a, createdTTId);

@@ -18,6 +18,12 @@
 				<paramTag name="SecondsToleranceForTT" type="numeric" default="120"/>
 				<!-- Habilita creación de TT para la PA (1 = habilitado, 0 = deshabilitado) -->
 				<paramTag name="CreateTTEnabled" type="numeric" default="1"/>
+				<!-- Registro TT en BD: 1 = persistir en SQLite, 0 = no registrar -->
+				<paramTag name="TTRegistryEnabled" type="numeric" default="1"/>
+				<!-- URL JDBC SQLite (ej. jdbc:sqlite:tt_incident.db o ruta absoluta) -->
+				<paramTag name="TTRegistryJdbcUrl" type="string" default="jdbc:sqlite:tt_incident.db"/>
+				<!-- Nombre de la tabla de registro (por defecto UCA_TT_INCIDENT) -->
+				<paramTag name="TTRegistryTableName" type="string" default="UCA_TT_INCIDENT"/>
 			</paramTags>
 		</group>
 	</groups>
