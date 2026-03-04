@@ -1,6 +1,6 @@
 # hwmasivov2 — Reglas Drools
 
-Este proyecto define un conjunto de reglas (Drools) para el procesamiento de alarmas **NE Is Disconnected** en TeMIP: parseo, agrupación en Problem Alarm (PA), asociación padre-hijo, creación de Trouble Tickets (TT) y validación de existencia de padres/hijas.
+Este proyecto define un conjunto de reglas (Drools) para el procesamiento de alarmas **NE Is Disconnected** en TeMIP: parseo, agrupación en Problem Alarm (PA), asociación padre-hijo, creación de Trouble Tickets (TT) y validación de existencia de padres/hijas. Los incidentes TT se persisten en **SQLite** (JDBC) para que este y otros proyectos puedan consultar si existe un neName con idSitio en estado abierto.
 
 ---
 
@@ -52,7 +52,7 @@ Este proyecto define un conjunto de reglas (Drools) para el procesamiento de ala
 
 **Cuándo:** Hay un `TickFlag`, una PA en `stage == 1` con `paSemillaId`, sin ticket (ni `handledByTicketId` ni `problemInformation` según `Hwmasivov2.alarmHasTicket`), y han pasado al menos `SecondsToleranceForTT` segundos desde el `eventTime` de la PA.
 
-**Qué hace:** Llama a `ServiceManager.createTroubleTicket(theScenario, a)` para crear el TT; si se obtiene un ID, lo guarda en `handledByTicketId`, pone la PA en `stage = 2` y registra el incidente en `TTIncidentRegistry.registerTTIncident` (una fila por cada neName único del additionalText de la PA, con id_sitio derivado del neName).
+**Qué hace:** Llama a `ServiceManager.createTroubleTicket(theScenario, a)` para crear el TT; si se obtiene un ID, lo guarda en `handledByTicketId`, pone la PA en `stage = 2` y llama a `TTIncidentRegistry.registerTTIncident`: escribe en SQLite una fila por cada neName único del additionalText (id_sitio = valor entre corchetes), estado `abierto`. La regla no termina hasta que todos los INSERT han finalizado.
 
 ---
 
@@ -60,7 +60,7 @@ Este proyecto define un conjunto de reglas (Drools) para el procesamiento de ala
 
 **Cuándo:** Existe una PA con `PB=ProblemAlarm` que ya tiene ticket (`Hwmasivov2.alarmHasTicket(pa)`), y una alarma que es hija de esa PA (según `Hwmasivov2.getParentIdentifiers`) y que aún no tiene ticket.
 
-**Qué hace:** Copia el `handledByTicketId` de la PA a la hija, actualiza la alarma en la sesión, envía la directiva HANDLE en TeMIP con `TemipDirectives.handleAlarm` y registra el incidente de la hija en `TTIncidentRegistry.registerTTIncident`.
+**Qué hace:** Copia el `handledByTicketId` de la PA a la hija, actualiza la alarma en la sesión, envía la directiva HANDLE en TeMIP con `TemipDirectives.handleAlarm` y llama a `TTIncidentRegistry.registerTTIncident`: escribe en SQLite una fila con ne_name e id_sitio de la hija, estado `abierto`.
 
 ---
 
@@ -114,7 +114,38 @@ Configuración típica en filtros/tags:
 | `SecondsMaxAgeForNeAlarm` | Edad máxima en segundos de una alarma NE Is Disconnected para ser considerada (agrupación o asociación como hija). |
 | `NumAlarmsNeDisconnected` | Número mínimo de alarmas (y de idSitio distintos) para crear la PA. |
 | `SecondsToleranceForTT` | Segundos de espera desde el eventTime de la PA antes de crear el TT. |
-| `TTRegistryEnabled` | Si es 1, se registran los incidentes TT en `TTIncidentRegistry` (simulación por log). |
+| `CreateTTEnabled` | 1 = habilitar creación de TT para la PA; 0 = deshabilitado. |
+| `TTRegistryEnabled` | 1 = persistir incidentes TT en SQLite; 0 = no escribir en BD. |
+| `TTRegistryJdbcUrl` | URL JDBC de la base SQLite (ej. `jdbc:sqlite:tt_incident.db`). Se define en `filters-file.xml` y `filtersTags.xml`. |
+| `TTRegistryTableName` | Nombre de la tabla (por defecto `UCA_TT_INCIDENT`). |
+
+Los tags se configuran en **filtersTags.xml** (definición y valores por defecto) y en **filters-file.xml** (valores aplicados por el filtro `tags` a las alarmas que pasan).
+
+---
+
+## Registro TT en SQLite
+
+Los incidentes TT se persisten en una base **SQLite** vía JDBC. La clase `TTIncidentRegistry` escribe en la tabla `UCA_TT_INCIDENT`:
+
+- **PA**: una fila por cada **neName único** del `additionalText` (líneas `neName [idSitio]`); `id_sitio` es el valor entre corchetes.
+- **Hija**: una fila con `ne_name` e `id_sitio` de los custom fields de la alarma.
+
+**Tabla** (script en `src/main/resources/valuepack/hwmasivov2/sql/create_tt_registry.sql`):
+
+| Columna | Tipo | Descripción |
+|--------|------|-------------|
+| `id` | INTEGER | PK, AUTOINCREMENT |
+| `incident_id` | TEXT | Número del TT |
+| `ne_name` | TEXT | Nombre del NE |
+| `id_sitio` | TEXT | Id. del sitio |
+| `estado` | TEXT | `abierto` o `cerrado` |
+| `fecha_creacion` | TEXT | Hora local, rellenada por la BD |
+| `fecha_actualizacion` | TEXT | Hora local, actualizada por trigger |
+
+- **UNIQUE(incident_id, ne_name, id_sitio)** para evitar duplicados.
+- **Índices**: `incident_id`; y `(ne_name, id_sitio, estado)` para consultas del tipo “¿existe incidente abierto para este NE y sitio?”.
+
+Crear la BD una vez, por ejemplo: `sqlite3 tt_incident.db < src/main/resources/valuepack/hwmasivov2/sql/create_tt_registry.sql`. La ruta del fichero SQLite se define en el tag `TTRegistryJdbcUrl`.
 
 ---
 
