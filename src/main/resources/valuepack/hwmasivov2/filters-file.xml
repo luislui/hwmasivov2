@@ -9,7 +9,7 @@
    -->
    <topFilter name="tags" tagsGroup="tags-config">
       <!-- Añadimos TeMIPNamespace y SecondsMaxAgeForNeAlarm como en CorteFibraV10 (adaptado) -->
-      <allCondition tag="NumAlarmsNeDisconnected=2,SecondsToConsiderNeDisconnected=30,SecondsMaxAgeForNeAlarm=43200,TeMIPNamespace=vtemiplab_ns,SecondsToleranceForTT=5,CreateTTEnabled=1,TTRegistryEnabled=1,TTRegistryJdbcUrl=jdbc:sqlite:/tmp/tt_incident.db,TTRegistryTableName=UCA_TT_INCIDENT">
+      <allCondition tag="NumAlarmsNeDisconnected=2,SecondsToConsiderNeDisconnected=30,SecondsMaxAgeForNeAlarm=43200,TeMIPNamespace=vtemiplab_ns,SecondsToleranceForTT=5,CreateTTEnabled=1,TTRegistryEnabled=1,TTRegistryJdbcUrl=jdbc:sqlite:/tmp/tt_incident.db,TTRegistryTableName=UCA_TT_INCIDENT,WaitBeforeGroupingSec=5">
          <stringFilterStatement>
             <fieldName>originatingManagedEntity</fieldName>
             <operator>matches</operator>

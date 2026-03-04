@@ -3,6 +3,7 @@ package com.abricot.hwmasivov2.hwmasivov2;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -77,6 +78,53 @@ public class TTIncidentRegistry {
         if (idSitio == null) idSitio = "";
         else idSitio = idSitio.trim();
         insertRow(scenario, alarm, jdbcUrl, tableName, incidentId.trim(), neName, idSitio, ESTADO_ABIERTO);
+    }
+
+    /**
+     * Consulta si existe un incidente abierto para el (neName, idSitio) y devuelve su incident_id.
+     * Usado por la regla de evaluación antes de agrupar; una consulta por alarma.
+     *
+     * @return incident_id de la fila con estado 'abierto', o null si no existe o hay error/URL no configurada
+     */
+    public static String getOpenIncidentIdForNeAndSitio(Scenario scenario, Alarm alarm, String neName, String idSitio) {
+        if (alarm == null) {
+            return null;
+        }
+        String n = (neName == null) ? "" : neName.trim();
+        String s = (idSitio == null) ? "" : idSitio.trim();
+        String jdbcUrl = getTag(alarm, "TTRegistryJdbcUrl");
+        String tableName = getTag(alarm, "TTRegistryTableName");
+        if (tableName == null || tableName.trim().isEmpty()) {
+            tableName = DEFAULT_TABLE;
+        }
+        if (jdbcUrl == null || jdbcUrl.trim().isEmpty()) {
+            return null;
+        }
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = DriverManager.getConnection(jdbcUrl);
+            String sql = "SELECT incident_id FROM " + sanitizeTableName(tableName) + " WHERE ne_name = ? AND id_sitio = ? AND estado = ? LIMIT 1";
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, n);
+            ps.setString(2, s);
+            ps.setString(3, ESTADO_ABIERTO);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getString(1);
+            }
+            return null;
+        } catch (SQLException e) {
+            if (scenario != null && scenario.getLogger() != null) {
+                scenario.getLogger().warn("TTIncidentRegistry: error al consultar incidente abierto para ne_name={}, id_sitio={} - {}", n, s, e.getMessage());
+            }
+            return null;
+        } finally {
+            if (rs != null) try { rs.close(); } catch (SQLException ignored) { }
+            if (ps != null) try { ps.close(); } catch (SQLException ignored) { }
+            if (conn != null) try { conn.close(); } catch (SQLException ignored) { }
+        }
     }
 
     private static String getTag(Alarm alarm, String key) {

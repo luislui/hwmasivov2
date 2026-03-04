@@ -46,6 +46,56 @@ no-loop
 end
 
 //
+// Evaluar alarmas NE Is Disconnected que ya tienen más de WaitBeforeGroupingSec en WM:
+// consultar BD una vez por alarma; si hay incidente abierto, asignar handledByTicketId y handleAlarm;
+// si no, marcar elegible para agrupación (neDiscEvalDone). La regla de agrupación solo considera alarmas evaluadas sin ticket.
+//
+rule "Rule [Evaluar NE Is Disconnected para agrupación]"
+    salience 10
+    no-loop
+    when
+        tick : TickFlag()
+        a : Alarm(customFields != null,
+                  parents == null,
+                  additionalText != null,
+                  !(additionalText contains "PB=ProblemAlarm"),
+                  getCustomFieldValue("stage") != null,
+                  getCustomFieldValue("stage") == "1",
+                  getCustomFieldValue("alarmName") != null,
+                  getCustomFieldValue("alarmName") == "NE Is Disconnected",
+                  getCustomFieldValue("idSitio") != null,
+                  getCustomFieldValue("neName") != null,
+                  getPassingFiltersParams() != null)
+        eval(java.lang.System.currentTimeMillis() - a.getTimeInMilliseconds() >=
+             Integer.parseInt(a.getPassingFiltersParams().get("tags").get("WaitBeforeGroupingSec").toString()) * 1000)
+        eval(a.getCustomFieldValue("neDiscEvalDone") == null || !"true".equals(a.getCustomFieldValue("neDiscEvalDone")))
+    then
+        LogHelper.enter(theScenario.getLogger(), drools.getRule().getName(), a.getIdentifier());
+        int waitSec = Integer.parseInt(a.getPassingFiltersParams().get("tags").get("WaitBeforeGroupingSec").toString());
+        long ageMs = java.lang.System.currentTimeMillis() - a.getTimeInMilliseconds();
+        String neName = (String) a.getCustomFieldValue("neName");
+        String idSitio = (String) a.getCustomFieldValue("idSitio");
+        theScenario.getLogger().info("EVALUAR NE IS DISCONNECTED - Alarma evaluada tras espera: {} ms ({} s configurado: {} s), neName={}, idSitio={}", ageMs, ageMs / 1000, waitSec, neName, idSitio);
+        String incidentId = TTIncidentRegistry.getOpenIncidentIdForNeAndSitio(theScenario, a, neName, idSitio);
+        a.setCustomFieldValue("neDiscEvalDone", "true");
+        if (incidentId != null && !incidentId.trim().isEmpty()) {
+            theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
+            theScenario.getLogger().info("EVALUAR NE IS DISCONNECTED - Incidente abierto existente, asociando alarma al TT");
+            theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
+            theScenario.getLogger().info("Alarma   : {} - neName={}, idSitio={}", a.getIdentifier(), neName, idSitio);
+            theScenario.getLogger().info("TT       : {}", incidentId);
+            theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
+            a.setCustomFieldValue("handledByTicketId", incidentId);
+            a.setCustomFieldValue("stage", "2");
+            theScenario.getSession().update(a);
+            TemipDirectives.handleAlarm(theScenario, a.getIdentifier(), incidentId);
+        } else {
+            theScenario.getSession().update(a);
+        }
+        LogHelper.exit(theScenario.getLogger(), drools.getRule().getName(), a.getIdentifier());
+end
+
+//
 // Agrupar al menos NumAlarmsNeDisconnected alarmas "NE Is Disconnected" de N idSitio distintos
 // en un rango de tiempo SecondsToConsiderNeDisconnected (como CorteFibraV10: se cumple el tiempo
 // y luego se recolectan las alarmas en esa ventana). Se usa un Flag para evitar crear
@@ -57,8 +107,8 @@ no-loop
     when
         tick : TickFlag()
 
-        // Alarma candidata "semilla": ya parseada, sin padre, alarmName = NE Is Disconnected, idSitio
-        // y que NO sea Problem Alarm (additionalText no contiene PB=ProblemAlarm)
+        // Alarma candidata "semilla": ya parseada, sin padre, alarmName = NE Is Disconnected, idSitio,
+        // ya evaluada (neDiscEvalDone) y sin ticket (elegible para agrupar)
         a : Alarm(customFields != null,
                   parents == null,
                   additionalText != null,
@@ -68,6 +118,8 @@ no-loop
                   getCustomFieldValue("alarmName") != null,
                   getCustomFieldValue("alarmName") == "NE Is Disconnected",
                   getCustomFieldValue("idSitio") != null,
+                  getCustomFieldValue("neDiscEvalDone") == "true",
+                  getCustomFieldValue("handledByTicketId") == null,
                   getPassingFiltersParams() != null)
 
         // Que haya transcurrido al menos SecondsToConsiderNeDisconnected desde la semilla (dar tiempo a que lleguen más)
@@ -93,6 +145,8 @@ no-loop
                   getCustomFieldValue("alarmName") != null,
                   getCustomFieldValue("alarmName") == "NE Is Disconnected",
                   getCustomFieldValue("idSitio") != null,
+                  getCustomFieldValue("neDiscEvalDone") == "true",
+                  getCustomFieldValue("handledByTicketId") == null,
                   // Filtro por ventana de tiempo usando SecondsToConsiderNeDisconnected (en segundos)
                   Math.abs($cand.getTimeInMilliseconds() - a.getTimeInMilliseconds()) <=
                       Integer.parseInt($cand.getPassingFiltersParams().get("tags")

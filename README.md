@@ -15,14 +15,26 @@ Este proyecto define un conjunto de reglas (Drools) para el procesamiento de ala
 
 ---
 
-### 2. Rule [Agrupar NE Is Disconnected]
+### 2. Rule [Evaluar NE Is Disconnected para agrupación]
+
+**Prioridad:** `salience 10` (por debajo de "asociarse como hija", por encima de agrupar).
+
+**Archivo:** `hwmasivov2.drl`  
+**Cuándo:** TickFlag y una alarma **NE Is Disconnected** (stage 1, sin padre, no PA) que lleva en WM al menos `WaitBeforeGroupingSec` segundos (ej. 15 min) y aún no tiene `neDiscEvalDone` = "true".
+
+**Qué hace:** Consulta la BD **una vez** por alarma (`TTIncidentRegistry.getOpenIncidentIdForNeAndSitio`). Siempre marca `neDiscEvalDone` = "true". Si existe un incidente abierto para ese (neName, idSitio): asigna `handledByTicketId`, pone `stage` = "2", actualiza la alarma y llama a `TemipDirectives.handleAlarm` (asociar al TT existente). Si no existe incidente abierto, solo actualiza (la alarma queda elegible para agrupación). Así la regla de agrupación solo ve alarmas ya evaluadas y sin ticket.
+
+---
+
+### 3. Rule [Agrupar NE Is Disconnected]
 
 **Archivo:** `hwmasivov2.drl`  
 **Cuándo:** Se dispara con un `TickFlag` cuando existe una alarma “semilla” **NE Is Disconnected** (parseada, sin padre, no PA) que cumple:
 
+- **Ya evaluada** (`neDiscEvalDone` == "true") y **sin ticket** (`handledByTicketId` == null), es decir elegible para agrupar.
 - Han pasado al menos `SecondsToConsiderNeDisconnected` segundos desde la semilla (para dar tiempo a que lleguen más alarmas).
 - La semilla no es más vieja que `SecondsMaxAgeForNeAlarm` segundos.
-- Se pueden recolectar al menos `NumAlarmsNeDisconnected` alarmas NE Is Disconnected en esa ventana de tiempo (sin contar PAs).
+- Se pueden recolectar al menos `NumAlarmsNeDisconnected` alarmas NE Is Disconnected en esa ventana (con `neDiscEvalDone` y sin `handledByTicketId`), sin contar PAs.
 - Hay al menos `NumAlarmsNeDisconnected` **idSitio distintos** entre las alarmas recolectadas.
 - No existe ya un `Flag` con id `NE_DISC_PA` (evita crear varias PAs en paralelo).
 
@@ -30,7 +42,7 @@ Este proyecto define un conjunto de reglas (Drools) para el procesamiento de ala
 
 ---
 
-### 3. Rule [Alarma NE Is Disconnected debe asociarse como hija]
+### 4. Rule [Alarma NE Is Disconnected debe asociarse como hija]
 
 **Prioridad:** `salience 20` (mayor que la regla de agrupación).
 
@@ -40,7 +52,7 @@ Este proyecto define un conjunto de reglas (Drools) para el procesamiento de ala
 
 ---
 
-### 4. Rule [Eliminar Flag cuando PA llega a WM]
+### 5. Rule [Eliminar Flag cuando PA llega a WM]
 
 **Cuándo:** Llega una alarma PA (`additionalText` contiene `PB=ProblemAlarm`) con `paSemillaId` y existe un `Flag` con id `NE_DISC_PA` y descripción `creating_` + ese `paSemillaId`.
 
@@ -48,7 +60,7 @@ Este proyecto define un conjunto de reglas (Drools) para el procesamiento de ala
 
 ---
 
-### 5. Rule [Crear TT de PA]
+### 6. Rule [Crear TT de PA]
 
 **Cuándo:** Hay un `TickFlag`, una PA en `stage == 1` con `paSemillaId`, sin ticket (ni `handledByTicketId` ni `problemInformation` según `Hwmasivov2.alarmHasTicket`), y han pasado al menos `SecondsToleranceForTT` segundos desde el `eventTime` de la PA.
 
@@ -56,7 +68,7 @@ Este proyecto define un conjunto de reglas (Drools) para el procesamiento de ala
 
 ---
 
-### 6. Rule [Asociar ticket a hijas]
+### 7. Rule [Asociar ticket a hijas]
 
 **Cuándo:** Existe una PA con `PB=ProblemAlarm` que ya tiene ticket (`Hwmasivov2.alarmHasTicket(pa)`), y una alarma que es hija de esa PA (según `Hwmasivov2.getParentIdentifiers`) y que aún no tiene ticket.
 
@@ -64,7 +76,7 @@ Este proyecto define un conjunto de reglas (Drools) para el procesamiento de ala
 
 ---
 
-### 7. Rule [Validar existencia de padre]
+### 8. Rule [Validar existencia de padre]
 
 **Cuándo:** Una alarma tiene `parents` no vacío (`Hwmasivov2.getParentIdentifiers(child).size() > 0`) y no se ha procesado aún (`parentValidatedProcessed` es null), y al menos uno de los padres **no está** en Working Memory.
 
@@ -72,7 +84,7 @@ Este proyecto define un conjunto de reglas (Drools) para el procesamiento de ala
 
 ---
 
-### 8. Rule [Validar existencia de hijas]
+### 9. Rule [Validar existencia de hijas]
 
 **Cuándo:** Una PA tiene hijas declaradas (`Hwmasivov2.getChildIdentifiers(pa).size() > 0`) y no se ha procesado aún (`childrenValidatedProcessed` es null), y **no existe** ninguna alarma en WM que sea hija de esa PA.
 
@@ -80,7 +92,7 @@ Este proyecto define un conjunto de reglas (Drools) para el procesamiento de ala
 
 ---
 
-### 9. Rule [Alarm Attribute Value Change]
+### 10. Rule [Alarm Attribute Value Change]
 
 **Cuándo:** Una alarma ya existente en WM (no recién insertada, no a punto de ser retirada) tiene `hasAVCChanged == true`.
 
@@ -88,7 +100,7 @@ Este proyecto define un conjunto de reglas (Drools) para el procesamiento de ala
 
 ---
 
-### 10. Rule [Alarm State Change]
+### 11. Rule [Alarm State Change]
 
 **Cuándo:** Una alarma ya existente en WM tiene `hasStateChanged == true` y no está a punto de ser retirada.
 
@@ -96,7 +108,7 @@ Este proyecto define un conjunto de reglas (Drools) para el procesamiento de ala
 
 ---
 
-### 11. Rule [Alarm no more eligible]
+### 12. Rule [Alarm no more eligible]
 
 **Cuándo:** Una alarma tiene `aboutToBeRetracted == true` (ya no cumple la política de elegibilidad, p. ej. `NetworkState == "CLEARED"`).
 
@@ -118,6 +130,7 @@ Configuración típica en filtros/tags:
 | `TTRegistryEnabled` | 1 = persistir incidentes TT en SQLite; 0 = no escribir en BD. |
 | `TTRegistryJdbcUrl` | URL JDBC de la base SQLite (ej. `jdbc:sqlite:tt_incident.db`). Se define en `filters-file.xml` y `filtersTags.xml`. |
 | `TTRegistryTableName` | Nombre de la tabla (por defecto `UCA_TT_INCIDENT`). |
+| `WaitBeforeGroupingSec` | Segundos que la alarma NE Is Disconnected debe llevar en WM antes de ser evaluada para agrupación (ej. 900 = 15 min). |
 
 Los tags se configuran en **filtersTags.xml** (definición y valores por defecto) y en **filters-file.xml** (valores aplicados por el filtro `tags` a las alarmas que pasan).
 
@@ -152,9 +165,9 @@ Crear la BD una vez, por ejemplo: `sqlite3 tt_incident.db < src/main/resources/v
 ## Flujo resumido
 
 1. **Llega alarma** → Parseo (Rule 1).
-2. **Alarmas NE Is Disconnected** → O se asocian como hijas de una PA existente (Rule 3) o, si se cumple número y ventana, se agrupan en una nueva PA (Rule 2).
-3. **Cuando la PA creada llega a WM** → Se elimina el Flag (Rule 4).
-4. **PA sin ticket y con antigüedad suficiente** → Se crea TT y se registra en TTIncidentRegistry (Rule 5).
-5. **Hijas de una PA con ticket** → Se les asigna el mismo ticket y se registran (Rule 6).
-6. **Padre ausente en WM** → Se cierra la hija con su ticket (Rule 7). **Sin hijas activas en WM** → Se termina la PA (Rule 8).
-7. **Cambios de atributos/estado y retirada** → Rules 9, 10 y 11.
+2. **Alarmas NE Is Disconnected** → Tras WaitBeforeGroupingSec (Rule 2) se evalúa en BD; si hay incidente abierto se asocia al TT (handleAlarm); si no, queda elegible. O se asocian como hijas de una PA existente (Rule 4) o, si se cumple número y ventana, se agrupan en una nueva PA (Rule 3).
+3. **Cuando la PA creada llega a WM** → Se elimina el Flag (Rule 5).
+4. **PA sin ticket y con antigüedad suficiente** → Se crea TT y se registra en TTIncidentRegistry (Rule 6).
+5. **Hijas de una PA con ticket** → Se les asigna el mismo ticket y se registran (Rule 7).
+6. **Padre ausente en WM** → Se cierra la hija con su ticket (Rule 8). **Sin hijas activas en WM** → Se termina la PA (Rule 9).
+7. **Cambios de atributos/estado y retirada** → Rules 10, 11 y 12.

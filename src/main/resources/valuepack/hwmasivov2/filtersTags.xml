@@ -24,6 +24,8 @@
 				<paramTag name="TTRegistryJdbcUrl" type="string" default="jdbc:sqlite:tt_incident.db"/>
 				<!-- Nombre de la tabla de registro (por defecto UCA_TT_INCIDENT) -->
 				<paramTag name="TTRegistryTableName" type="string" default="UCA_TT_INCIDENT"/>
+				<!-- Segundos que la alarma NE Is Disconnected debe llevar en WM antes de ser evaluada para agrupación (ej. 900 = 15 min) -->
+				<paramTag name="WaitBeforeGroupingSec" type="numeric" default="900"/>
 			</paramTags>
 		</group>
 	</groups>
