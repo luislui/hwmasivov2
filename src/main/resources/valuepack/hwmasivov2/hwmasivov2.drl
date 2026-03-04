@@ -262,6 +262,11 @@ no-loop
 
         a.setCustomFieldValue("stage", "2");
         theScenario.getSession().update(a);
+        createdTTId = "F4705963"; // TODO: eliminar
+
+        if (createdTTId != null && !createdTTId.trim().isEmpty()) {
+            TTIncidentRegistry.registerTTIncident(theScenario, a, createdTTId);
+        }
 
         LogHelper.exit(theScenario.getLogger(), drools.getRule().getName(), a.getIdentifier());
 end
@@ -293,6 +298,7 @@ no-loop
         theScenario.getSession().update(child);
         // Enviar directiva HANDLE en TeMIP para asociar el ticket a la hija (como CorteFibraV10)
         TemipDirectives.handleAlarm(theScenario, child.getIdentifier(), ticketId);
+        TTIncidentRegistry.registerTTIncident(theScenario, child, ticketId);
         LogHelper.exit(theScenario.getLogger(), drools.getRule().getName(), child.getIdentifier());
 end
 
