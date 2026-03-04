@@ -14,6 +14,10 @@
 				<paramTag name="SecondsMaxAgeForNeAlarm" type="numeric" default="43200"/>
 				<!-- Namespace de la instancia TeMIP (ej. vtemiplab_ns). Se usa al construir identificadores C:TeMIP y MASTER:TeMIP -->
 				<paramTag name="TeMIPNamespace" type="string" default="vtemiplab_ns"/>
+				<!-- Tiempo en segundos de espera tras llegar la PA antes de crear el TT (tolerancia, como MsToleranceForTT en CorteFibraV10) -->
+				<paramTag name="SecondsToleranceForTT" type="numeric" default="120"/>
+				<!-- Habilita creación de TT para la PA (1 = habilitado, 0 = deshabilitado) -->
+				<paramTag name="CreateTTEnabled" type="numeric" default="1"/>
 			</paramTags>
 		</group>
 	</groups>

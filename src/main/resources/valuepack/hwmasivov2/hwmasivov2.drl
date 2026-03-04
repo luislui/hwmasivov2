@@ -218,6 +218,144 @@ no-loop
         LogHelper.exit(theScenario.getLogger(), drools.getRule().getName(), pa.getIdentifier());
 end
 
+//
+// Regla que crea un TT (Trouble Ticket) para la PA cuando ha pasado el tiempo de tolerancia.
+// No crea TT si la alarma ya tiene ticket (handledByTicketId, handledBy o problemInformation).
+//
+rule "Rule [Crear TT de PA]"
+no-loop
+    when
+        tick : TickFlag()
+        // PA en stage=1 (parseo la puso al llegar), con paSemillaId, sin ticket aún (ni handledByTicketId ni problemInformation)
+        a : Alarm(additionalText != null,
+                  additionalText contains "PB=ProblemAlarm",
+                  getCustomFieldValue("paSemillaId") != null,
+                  getCustomFieldValue("stage") == "1",
+                  getPassingFiltersParams() != null)
+        eval(!Hwmasivov2.alarmHasTicket(a))
+        // Que haya pasado al menos SecondsToleranceForTT desde el eventTime de la PA
+        eval(java.lang.System.currentTimeMillis() - a.getTimeInMilliseconds() >=
+             Integer.parseInt(a.getPassingFiltersParams().get("tags").get("SecondsToleranceForTT").toString()) * 1000)
+    then
+        LogHelper.enter(theScenario.getLogger(), drools.getRule().getName(), a.getIdentifier());
+
+        int secondsTolerance = Integer.parseInt(a.getPassingFiltersParams().get("tags").get("SecondsToleranceForTT").toString());
+        long ageMs = java.lang.System.currentTimeMillis() - a.getTimeInMilliseconds();
+
+        theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
+        theScenario.getLogger().info("CREAR TT DE PA (NE Is Disconnected)");
+        theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
+        theScenario.getLogger().info("Alarm ID          : {}", a.getIdentifier());
+        theScenario.getLogger().info("paSemillaId       : {}", a.getCustomFieldValue("paSemillaId"));
+        theScenario.getLogger().info("Edad de la PA     : {} ms (tolerancia {} s)", ageMs, secondsTolerance);
+        theScenario.getLogger().info("Mensaje           : Se debe crear un TT de PA");
+        theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
+
+        String createdTTId = ServiceManager.createTroubleTicket(theScenario, a);
+        if (createdTTId != null && !createdTTId.trim().isEmpty()) {
+            theScenario.getLogger().info("TT de PA creado exitosamente con ID: {}", createdTTId);
+            a.setCustomFieldValue("handledByTicketId", createdTTId);
+            theScenario.getLogger().info("  ID del ticket asignado a handledByTicketId: {}", createdTTId);
+        } else {
+            theScenario.getLogger().warn("No se pudo crear el TT de PA o no se obtuvo el ID");
+        }
+
+        a.setCustomFieldValue("stage", "2");
+        theScenario.getSession().update(a);
+
+        LogHelper.exit(theScenario.getLogger(), drools.getRule().getName(), a.getIdentifier());
+end
+
+//
+// Asociar el ticket de la PA a las alarmas hijas que aún no tienen ticket
+// (propagar handledByTicketId para que hijas tengan el número de ticket a mano).
+//
+rule "Rule [Asociar ticket a hijas]"
+no-loop
+    when
+        pa : Alarm(additionalText != null,
+                   additionalText contains "PB=ProblemAlarm",
+                   identifier != null)
+        eval(Hwmasivov2.alarmHasTicket(pa))
+        child : Alarm(identifier != null,
+                      eval(Hwmasivov2.getParentIdentifiers(child).contains(pa.getIdentifier())),
+                      eval(!Hwmasivov2.alarmHasTicket(child)))
+    then
+        LogHelper.enter(theScenario.getLogger(), drools.getRule().getName(), child.getIdentifier());
+        String ticketId = Hwmasivov2.getTicketId(pa);
+        theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
+        theScenario.getLogger().info("ASOCIAR TICKET DE PA A HIJA");
+        theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
+        theScenario.getLogger().info("PA (padre)   : {} - Ticket: {}", pa.getIdentifier(), ticketId);
+        theScenario.getLogger().info("Hija         : {}", child.getIdentifier());
+        theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
+        child.setCustomFieldValue("handledByTicketId", ticketId);
+        theScenario.getSession().update(child);
+        // Enviar directiva HANDLE en TeMIP para asociar el ticket a la hija (como CorteFibraV10)
+        TemipDirectives.handleAlarm(theScenario, child.getIdentifier(), ticketId);
+        LogHelper.exit(theScenario.getLogger(), drools.getRule().getName(), child.getIdentifier());
+end
+
+//
+// Validar existencia de padre: si una alarma hija tiene padres pero alguno ya no está en WM,
+// cerrar la hija en TeMIP con su ticket (como CorteFibraV10).
+//
+rule "Rule [Validar existencia de padre]"
+no-loop
+    when
+        child : Alarm(parents != null,
+                      eval(Hwmasivov2.getParentIdentifiers(child).size() > 0),
+                      getCustomFieldValue("parentValidatedProcessed") == null)
+        parentId : String() from Hwmasivov2.getParentIdentifiers(child)
+        not ( pa : Alarm(identifier == parentId) )
+    then
+        LogHelper.enter(theScenario.getLogger(), drools.getRule().getName(), child.getIdentifier());
+        theScenario.getLogger().warn("═══════════════════════════════════════════════════════════════");
+        theScenario.getLogger().warn("VALIDAR EXISTENCIA DE PADRE: El padre ya no está en WM");
+        theScenario.getLogger().warn("  Hija    : {}", child.getIdentifier());
+        theScenario.getLogger().warn("  Padre   : {}", parentId);
+        String childTicketId = Hwmasivov2.getTicketId(child);
+        theScenario.getLogger().warn("  Child Ticket ID : {}", childTicketId);
+        theScenario.getLogger().warn("═══════════════════════════════════════════════════════════════");
+        if (childTicketId != null && !childTicketId.trim().isEmpty()) {
+            theScenario.getLogger().warn("SE CERRARÁ LA ALARMA HIJA CON TICKET: {}", childTicketId);
+            TemipDirectives.closeAlarm(theScenario, child.getIdentifier(), childTicketId);
+        }
+        child.setCustomFieldValue("parentValidatedProcessed", "true");
+        theScenario.getSession().update(child);
+        LogHelper.exit(theScenario.getLogger(), drools.getRule().getName(), child.getIdentifier());
+end
+
+//
+// Validar existencia de hijas: si una PA ya no tiene hijas activas en WM,
+// terminar la alarma padre en TeMIP
+//
+rule "Rule [Validar existencia de hijas]"
+no-loop
+    when
+        pa : Alarm(additionalText != null,
+                  additionalText contains "PB=ProblemAlarm",
+                  children != null,
+                  eval(Hwmasivov2.getChildIdentifiers(pa).size() > 0),
+                  getCustomFieldValue("childrenValidatedProcessed") == null)
+        // No existe ninguna alarma en WM que sea hija de esta PA
+        not ( c : Alarm(eval(pa != null && Hwmasivov2.getChildIdentifiers(pa).contains(c.getIdentifier()))) )
+    then
+        LogHelper.enter(theScenario.getLogger(), drools.getRule().getName(), pa.getIdentifier());
+        String parentTicketId = Hwmasivov2.getTicketId(pa);
+        theScenario.getLogger().warn("═══════════════════════════════════════════════════════════════");
+        theScenario.getLogger().warn("VALIDAR EXISTENCIA DE HIJAS: PA sin hijas activas en WM");
+        theScenario.getLogger().warn("  PA (padre)     : {}", pa.getIdentifier());
+        theScenario.getLogger().warn("  Parent Ticket ID : {}", parentTicketId);
+        theScenario.getLogger().warn("═══════════════════════════════════════════════════════════════");
+        theScenario.getLogger().warn("SE TERMINARÁ LA ALARMA PADRE (NO TIENE HIJAS ACTIVAS)");
+        theScenario.getLogger().warn("═══════════════════════════════════════════════════════════════");
+        TemipDirectives.terminateAlarm(theScenario, pa.getIdentifier());
+        pa.setCustomFieldValue("childrenValidatedProcessed", "true");
+        theScenario.getSession().update(pa);
+        LogHelper.exit(theScenario.getLogger(), drools.getRule().getName(), pa.getIdentifier());
+end
+
 // 
 // Rule corresponding to any alarm attribute value change in CLOUD mode
 //

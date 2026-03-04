@@ -13,7 +13,7 @@ import com.hp.uca.temip.mvp.aodirective.mapper.AODirectiveKey;
 
 /**
  * Clase utilitaria para crear alarmas y enviar directivas TeMIP
- * (CREATE, GROUPALARMS, ADDPARENT).
+ * (CREATE, GROUPALARMS, ADDPARENT, HANDLE, REMOVEPARENT, REMOVECHILD).
  */
 public class TemipDirectives {
 
@@ -317,6 +317,176 @@ public class TemipDirectives {
         } catch (Exception e) {
             theScenario.getLogger().error("ERROR al asociar padre a hijo: {}", e.getMessage(), e);
             theScenario.getLogger().error("Detalles: Child ID={}, Parent ID={}", childIdentifier, parentIdentifier);
+        }
+    }
+
+    /**
+     * Asocia un Trouble Ticket (TT) a una alarma en TeMIP usando la directiva HANDLE
+     * (como en CorteFibraV10).
+     *
+     * @param theScenario      el escenario actual
+     * @param alarmIdentifier  identificador de la alarma en formato UCA
+     * @param ticketId         identificador del Trouble Ticket
+     */
+    public static void handleAlarm(Scenario theScenario, String alarmIdentifier, String ticketId) {
+        handleAlarm(theScenario, alarmIdentifier, ticketId, null);
+    }
+
+    /**
+     * Asocia un Trouble Ticket (TT) a una alarma en TeMIP usando la directiva HANDLE.
+     *
+     * @param theScenario      el escenario actual
+     * @param alarmIdentifier  identificador de la alarma en formato UCA
+     * @param ticketId         identificador del Trouble Ticket
+     * @param userId           ID de usuario (opcional, por defecto "uca")
+     */
+    public static void handleAlarm(Scenario theScenario, String alarmIdentifier, String ticketId, String userId) {
+        if (theScenario == null) {
+            return;
+        }
+        if (alarmIdentifier == null || alarmIdentifier.trim().isEmpty()) {
+            theScenario.getLogger().error("No se puede asociar TT a alarma: el identificador de la alarma es requerido");
+            return;
+        }
+        if (ticketId == null || ticketId.trim().isEmpty()) {
+            theScenario.getLogger().error("No se puede asociar TT a alarma: el identificador del TT es requerido");
+            return;
+        }
+        String finalUserId = (userId != null && !userId.trim().isEmpty()) ? userId.trim() : "uca";
+
+        theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
+        theScenario.getLogger().info("INICIANDO ASOCIACIÓN DE TT A ALARMA (HANDLE)");
+        theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
+        theScenario.getLogger().info("  Alarm ID (UCA)      : {}", alarmIdentifier);
+        theScenario.getLogger().info("  Ticket ID           : {}", ticketId);
+        theScenario.getLogger().info("  User ID             : {}", finalUserId);
+
+        try {
+            Action action = new Action("TeMIP_AOAction");
+            action.addCommand(AODirectiveKey.DIRECTIVE_NAME, "HANDLE");
+            action.addCommand(AODirectiveKey.ENTITY_NAME, alarmIdentifier.trim());
+            String requester = String.format("DOMAIN .ANYTTS ELEMENT %s", ticketId.trim());
+            action.addCommand("Requester", requester);
+            theScenario.getLogger().info("  Requester            : {}", requester);
+            action.addCommandIfAbsent("UserID", "tmipuseruca");
+            action.addCommandIfAbsent("SOAP_User", "uca");
+
+            theScenario.addAction(action);
+            action.executeAsync(AODirectiveKey.ENTITY_NAME);
+
+            theScenario.getLogger().info("─────────────────────────────────────────────────────────────");
+            theScenario.getLogger().info("ACCIÓN DE ASOCIACIÓN DE TT ENVIADA:");
+            theScenario.getLogger().info("  Action ID             : {}", action.getActionId());
+            theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
+        } catch (Exception e) {
+            theScenario.getLogger().error("ERROR al asociar TT a alarma: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Cierra una alarma en TeMIP usando la directiva CLOSE (como en CorteFibraV10).
+     * Se usa cuando una hija queda sin padre en WM.
+     *
+     * @param theScenario     el escenario actual
+     * @param alarmIdentifier identificador de la alarma en formato UCA
+     * @param ticketId        identificador del Trouble Ticket que cierra la alarma
+     */
+    public static void closeAlarm(Scenario theScenario, String alarmIdentifier, String ticketId) {
+        closeAlarm(theScenario, alarmIdentifier, ticketId, null);
+    }
+
+    /**
+     * Cierra una alarma en TeMIP usando la directiva CLOSE.
+     */
+    public static void closeAlarm(Scenario theScenario, String alarmIdentifier, String ticketId, String userId) {
+        if (theScenario == null) {
+            return;
+        }
+        if (alarmIdentifier == null || alarmIdentifier.trim().isEmpty()) {
+            theScenario.getLogger().error("No se puede cerrar alarma: el identificador de la alarma es requerido");
+            return;
+        }
+        if (ticketId == null || ticketId.trim().isEmpty()) {
+            theScenario.getLogger().error("No se puede cerrar alarma: el identificador del ticket es requerido");
+            return;
+        }
+        String finalUserId = (userId != null && !userId.trim().isEmpty()) ? userId.trim() : "tmipuseruca";
+
+        theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
+        theScenario.getLogger().info("INICIANDO CIERRE DE ALARMA (CLOSE)");
+        theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
+        theScenario.getLogger().info("  Alarm ID (UCA)      : {}", alarmIdentifier);
+        theScenario.getLogger().info("  Ticket ID           : {}", ticketId);
+        theScenario.getLogger().info("  User ID             : {}", finalUserId);
+
+        try {
+            Action action = new Action("TeMIP_AOAction");
+            action.addCommand(AODirectiveKey.DIRECTIVE_NAME, "CLOSE");
+            action.addCommand(AODirectiveKey.ENTITY_NAME, alarmIdentifier.trim());
+            String requester = String.format("DOMAIN .ANYTTS ELEMENT \"%s\"", ticketId.trim());
+            action.addCommand("Requester", requester);
+            theScenario.getLogger().info("  Requester            : {}", requester);
+            action.addCommandIfAbsent("UserID", "tmipuseruca");
+            action.addCommandIfAbsent("SOAP_User", "uca");
+
+            theScenario.addAction(action);
+            action.executeAsync(AODirectiveKey.ENTITY_NAME);
+
+            theScenario.getLogger().info("─────────────────────────────────────────────────────────────");
+            theScenario.getLogger().info("ACCIÓN DE CIERRE DE ALARMA ENVIADA:");
+            theScenario.getLogger().info("  Action ID             : {}", action.getActionId());
+            theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
+        } catch (Exception e) {
+            theScenario.getLogger().error("ERROR al cerrar alarma: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Termina una alarma en TeMIP usando la directiva TERMINATE (como en CorteFibraV10).
+     * Se usa cuando el padre ya no tiene hijas activas en WM.
+     *
+     * @param theScenario     el escenario actual
+     * @param alarmIdentifier identificador de la alarma en formato UCA
+     */
+    public static void terminateAlarm(Scenario theScenario, String alarmIdentifier) {
+        terminateAlarm(theScenario, alarmIdentifier, null);
+    }
+
+    /**
+     * Termina una alarma en TeMIP usando la directiva TERMINATE.
+     */
+    public static void terminateAlarm(Scenario theScenario, String alarmIdentifier, String userId) {
+        if (theScenario == null) {
+            return;
+        }
+        if (alarmIdentifier == null || alarmIdentifier.trim().isEmpty()) {
+            theScenario.getLogger().error("No se puede terminar alarma: el identificador de la alarma es requerido");
+            return;
+        }
+        String finalUserId = (userId != null && !userId.trim().isEmpty()) ? userId.trim() : "uca";
+
+        theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
+        theScenario.getLogger().info("INICIANDO TERMINACIÓN DE ALARMA (TERMINATE)");
+        theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
+        theScenario.getLogger().info("  Alarm ID (UCA)      : {}", alarmIdentifier);
+        theScenario.getLogger().info("  User ID             : {}", finalUserId);
+
+        try {
+            Action action = new Action("TeMIP_AOAction");
+            action.addCommand(AODirectiveKey.DIRECTIVE_NAME, "TERMINATE");
+            action.addCommand(AODirectiveKey.ENTITY_NAME, alarmIdentifier.trim());
+            action.addCommandIfAbsent("UserID", "tmipuseruca");
+            action.addCommandIfAbsent("SOAP_User", finalUserId);
+
+            theScenario.addAction(action);
+            action.executeAsync(AODirectiveKey.ENTITY_NAME);
+
+            theScenario.getLogger().info("─────────────────────────────────────────────────────────────");
+            theScenario.getLogger().info("ACCIÓN DE TERMINACIÓN ENVIADA:");
+            theScenario.getLogger().info("  Action ID             : {}", action.getActionId());
+            theScenario.getLogger().info("═══════════════════════════════════════════════════════════════");
+        } catch (Exception e) {
+            theScenario.getLogger().error("ERROR al terminar alarma: {}", e.getMessage(), e);
         }
     }
 }
